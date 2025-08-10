@@ -1,96 +1,22 @@
 "use client";
-import { parkingLots } from "../../data/parkingLots";
-import { LocationEdit, Map, SearchCheck } from "lucide-react";
 import React, { useState } from "react";
-import axios from "axios";
+import { LocationEdit } from "lucide-react";
+import { parkingLots } from "@/data/parkingLots";
+import { getDistanceKm } from "../../utils/distance";
 import { useRouter } from "next/navigation";
+import { useParkingStore } from "../store/useParkingStore";
 
-// Haversine formula to calculate distance between two lat/lon in KM
-const getDistanceKm = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Earth radius in km
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // in km
-};
-
-const SearchModel = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
+const CurrentLocationParking = () => {
   const [selectedCoords, setSelectedCoords] = useState(null);
-
+  const [nearbyLots, setNearbyLots] = useState([]);
+  const { setSelectedLot } = useParkingStore();
   const router = useRouter();
 
-  // Utility function to clean empty commas from address
-  const cleanAddress = (addr) => {
-    return addr
-      .split(",")
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0)
-      .join(", ");
-  };
-
-  // Fetch suggestions from backend API
-  const fetchSuggestions = async (query) => {
-    if (!query) {
-      setSuggestions([]);
-      return;
-    }
-    try {
-      const res = await axios.get(`/api/mappls-suggestions?query=${query}`);
-      const cleanedSuggestions = (res.data.suggestedLocations || []).map(
-        (loc) => ({
-          ...loc,
-          placeAddress: cleanAddress(loc.placeAddress),
-        })
-      );
-      setSuggestions(cleanedSuggestions);
-    } catch (err) {
-      console.error("Error fetching suggestions:", err);
-    }
-  };
-
-  // Handle typing in the search box
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    fetchSuggestions(value);
-  };
-
-  // Handle clicking a suggestion
-  const handleSelectLocation = async (loc) => {
-    console.log("Selected location object:", loc);
-
-    try {
-      // Call backend API to get lat/lon
-      const res = await axios.get(`/api/mappls-coords?eloc=${loc.eLoc}`);
-      const coords = res.data;
-
-      if (coords.lat && coords.lon) {
-        setSelectedCoords(coords);
-        setSearchTerm(loc.placeAddress);
-        setSuggestions([]);
-        console.log("Selected location coords:", coords.lat, coords.lon);
-      } else {
-        alert("Could not fetch coordinates for this location.");
-      }
-    } catch (err) {
-      console.error("Error getting coordinates:", err);
-      alert("Failed to get location details.");
-    }
-  };
-
-  // Handle current location
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
       return alert("Geolocation not supported");
     }
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = {
@@ -98,8 +24,7 @@ const SearchModel = () => {
           lon: pos.coords.longitude,
         };
         setSelectedCoords(coords);
-        console.log("Current location coords:", coords);
-        // Filter parking lots within 5 km
+
         const nearby = parkingLots.filter((lot) => {
           const distance = getDistanceKm(
             coords.lat,
@@ -107,10 +32,10 @@ const SearchModel = () => {
             lot.lat,
             lot.lon
           );
-          return distance <= 5;
+          return distance <= 5; // within 5 km
         });
-        console.log("Nearby parking lots:", nearby);
-        setSuggestions(nearby); // reusing suggestions state for display
+
+        setNearbyLots(nearby);
       },
       (err) => {
         console.error("Location error:", err);
@@ -119,6 +44,18 @@ const SearchModel = () => {
     );
   };
 
+  const handleSelectLot = (lot) => {
+    setSelectedLot(lot); // Store parking lot in Zustand
+
+    // Pass only user coords via query params
+    if (selectedCoords) {
+      router.push(
+        `/directions?lat=${selectedCoords.lat}&lon=${selectedCoords.lon}`
+      );
+    } else {
+      alert("Please get your current location first");
+    }
+  };
   return (
     <div className="md:w-[400px] w-full h-fit p-2 bg-gray-200">
       {/* Current Location Button */}
@@ -132,23 +69,23 @@ const SearchModel = () => {
         </button>
       </div>
 
-      {/* Debug Output */}
+      {/* Show Coords */}
       {selectedCoords && (
         <p className="mt-2 text-sm text-gray-600">
-          Selected Coords: {selectedCoords.lat}, {selectedCoords.lon}
+          Your Location: {selectedCoords.lat.toFixed(4)},{" "}
+          {selectedCoords.lon.toFixed(4)}
         </p>
       )}
 
-      {suggestions.length > 0 && (
+      {/* Nearby Parking Lots */}
+      {nearbyLots.length > 0 && (
         <div className="mt-4 bg-white rounded-md p-2">
-          <h3 className="font-bold mb-2">Nearby Parking Lots</h3>
-          {suggestions.map((lot) => (
+          <h3 className="font-bold mb-2">Nearby Parking Lots (within 5km)</h3>
+          {nearbyLots.map((lot) => (
             <div
-              onClick={() =>
-                router.push(`/directions?lat=${lot.lat}&lon=${lot.lon}`)
-              }
+              onClick={() => handleSelectLot(lot)}
               key={lot.id}
-              className="border-b py-1"
+              className="border-b py-1 cursor-pointer hover:bg-gray-100"
             >
               {lot.name}
             </div>
@@ -159,4 +96,4 @@ const SearchModel = () => {
   );
 };
 
-export default SearchModel;
+export default CurrentLocationParking;
