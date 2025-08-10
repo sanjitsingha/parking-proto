@@ -6,9 +6,13 @@ const DirectionsPage = () => {
   const { selectedLot } = useParkingStore();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const userMarkerRef = useRef(null);
+  const watchIdRef = useRef(null);
   const [userLocation, setUserLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [isFollowingUser, setIsFollowingUser] = useState(false);
 
   // Try to get parking lot data from localStorage as fallback
   const [parkingLot, setParkingLot] = useState(null);
@@ -83,8 +87,73 @@ const DirectionsPage = () => {
     getCurrentLocation();
   }, []);
 
+  const startNavigation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by this browser");
+      return;
+    }
+
+    setIsNavigating(true);
+    setIsFollowingUser(true);
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 1000, // 1 second for real-time updates
+    };
+
+    // Watch position for real-time updates
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const newLocation = { lat: latitude, lon: longitude };
+
+        setUserLocation(newLocation);
+
+        // Update marker position if map is initialized
+        if (userMarkerRef.current && mapInstanceRef.current) {
+          userMarkerRef.current.setLatLng([latitude, longitude]);
+
+          // If following user, center map on user
+          if (isFollowingUser) {
+            mapInstanceRef.current.setView(
+              [latitude, longitude],
+              mapInstanceRef.current.getZoom()
+            );
+          }
+        }
+      },
+      (error) => {
+        console.error("Error watching position:", error);
+        setIsNavigating(false);
+      },
+      options
+    );
+  };
+
+  const stopNavigation = () => {
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setIsNavigating(false);
+    setIsFollowingUser(false);
+  };
+
+  const centerOnUser = () => {
+    if (mapInstanceRef.current && userLocation) {
+      mapInstanceRef.current.setView([userLocation.lat, userLocation.lon], 16);
+      setIsFollowingUser(true);
+    }
+  };
+
+  const toggleFollowUser = () => {
+    setIsFollowingUser(!isFollowingUser);
+  };
+
   useEffect(() => {
     if (!userLocation || !parkingLot) return;
+
     // Load Leaflet CSS and JS
     const loadLeaflet = async () => {
       // Load CSS
@@ -149,11 +218,18 @@ const DirectionsPage = () => {
         const centerLat = (userLocation.lat + parkingLot.lat) / 2;
         const centerLon = (userLocation.lon + parkingLot.lon) / 2;
 
-        // Initialize map
-        const map = window.L.map(mapRef.current).setView(
-          [centerLat, centerLon],
-          13
-        );
+        // Initialize map with rotation enabled
+        const map = window.L.map(mapRef.current, {
+          center: [centerLat, centerLon],
+          zoom: 13,
+          rotate: true,
+          rotateControl: {
+            closeOnZeroBearing: false,
+          },
+          bearing: 0,
+          touchRotate: true,
+          shiftKeyRotate: true,
+        });
 
         // Add OpenStreetMap tiles
         window.L.tileLayer(
@@ -178,7 +254,15 @@ const DirectionsPage = () => {
               border-radius: 50%; 
               box-shadow: 0 2px 4px rgba(0,0,0,0.3);
               position: relative;
+              animation: pulse 2s infinite;
             "></div>
+            <style>
+              @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.2); }
+                100% { transform: scale(1); }
+              }
+            </style>
           `,
           iconSize: [20, 20],
           iconAnchor: [10, 10],
@@ -226,6 +310,8 @@ const DirectionsPage = () => {
             title: "Your Location",
           }
         ).addTo(map);
+
+        userMarkerRef.current = userMarker;
 
         const parkingMarker = window.L.marker(
           [parkingLot.lat, parkingLot.lon],
@@ -284,6 +370,11 @@ const DirectionsPage = () => {
             time: Math.round(summary.totalTime / 60) + " min",
           });
         });
+
+        // Disable follow user when map is manually moved
+        map.on("dragstart", () => {
+          setIsFollowingUser(false);
+        });
       } catch (error) {
         console.error("Error initializing map:", error);
         // Show error message
@@ -305,6 +396,9 @@ const DirectionsPage = () => {
 
     // Cleanup
     return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
       if (mapInstanceRef.current) {
         try {
           mapInstanceRef.current.remove();
@@ -438,6 +532,34 @@ const DirectionsPage = () => {
           style={{ minHeight: "400px" }}
         />
 
+        {/* Map Control Buttons */}
+        <div className="absolute top-4 right-4 z-[1000] space-y-2">
+          <button
+            onClick={centerOnUser}
+            className={`p-3 rounded-full shadow-lg transition-all ${
+              isFollowingUser
+                ? "bg-blue-500 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+            title="Center on current location"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 2L12 6M12 18L12 22M4.22 4.22L6.34 6.34M17.66 6.34L19.78 4.22M2 12L6 12M18 12L22 12M4.22 19.78L6.34 17.66M17.66 17.66L19.78 19.78"
+              />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
+
         {/* Loading overlay */}
         <div
           className="absolute inset-0 bg-white flex items-center justify-center z-[1000]"
@@ -499,9 +621,77 @@ const DirectionsPage = () => {
             </div>
           </div>
 
-          <button className="w-full rounded-lg bg-green-500 hover:bg-green-600 transition-colors py-4 text-white font-medium text-lg shadow-sm">
-            Generate QR Code
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={isNavigating ? stopNavigation : startNavigation}
+              className={`w-full rounded-lg py-4 text-white font-medium text-lg shadow-sm transition-colors ${
+                isNavigating
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
+            >
+              {isNavigating ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 10l2 2 4-4"
+                    />
+                  </svg>
+                  Stop Navigation
+                </span>
+              ) : (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                    />
+                  </svg>
+                  Start Navigation
+                </span>
+              )}
+            </button>
+
+            <button className="w-full rounded-lg bg-green-500 hover:bg-green-600 transition-colors py-4 text-white font-medium text-lg shadow-sm">
+              <span className="flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v1m6 11a6 6 0 11-12 0v-1m12 1a6 6 0 01-6 6H6a6 6 0 01-6-6v-1m12 1v1a6 6 0 01-6 6H6a6 6 0 01-6-6v-1m12-1V9a6 6 0 00-6-6H6a6 6 0 00-6 6v6.01"
+                  />
+                </svg>
+                Generate QR Code
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
