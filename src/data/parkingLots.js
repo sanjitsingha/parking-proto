@@ -13,7 +13,7 @@ export const parkingLots = [
     id: 5,
     name: "Ghoshpukur Parking",
     price: "20/hr",
-    lat: 26.592687,
-    lon: 88.287748,
+    lat: 26.639138,
+    lon: 88.310727,
   },
 ];
