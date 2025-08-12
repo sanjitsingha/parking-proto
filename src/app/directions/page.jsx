@@ -296,8 +296,11 @@ const DirectionsPage = () => {
     getCurrentLocation();
   }, []);
 
-  // Device orientation handling
+  // Device orientation handling (optimized to reduce updates)
   useEffect(() => {
+    let lastHeading = 0;
+    const headingThreshold = 5; // Only update if heading changes by more than 5 degrees
+
     const requestOrientationPermission = async () => {
       if (
         typeof DeviceOrientationEvent !== "undefined" &&
@@ -327,11 +330,15 @@ const DirectionsPage = () => {
         heading = 360 - heading;
       }
 
-      setDeviceHeading(heading);
+      // Only update if heading changed significantly to prevent constant updates
+      if (Math.abs(heading - lastHeading) > headingThreshold) {
+        lastHeading = heading;
+        setDeviceHeading(heading);
 
-      // Update user marker rotation if navigating
-      if (isNavigating && userMarkerRef.current) {
-        updateUserMarkerIcon(heading);
+        // Update user marker rotation if navigating
+        if (isNavigating && userMarkerRef.current) {
+          updateUserMarkerIcon(heading);
+        }
       }
     };
 
@@ -363,62 +370,139 @@ const DirectionsPage = () => {
     if (!L) return null;
 
     if (isNavigationMode) {
-      // Navigation mode: directional arrow
+      // Navigation mode: torch ray style with beam
       return L.divIcon({
-        className: "custom-user-marker-navigation",
+        className: `custom-user-marker-navigation navigation-marker-${Date.now()}`,
         html: `
-          <div style="
-            width: 24px; 
-            height: 24px; 
+          <div class="navigation-container" style="
+            width: 40px; 
+            height: 40px; 
             position: relative;
             transform: rotate(${heading}deg);
-            transition: transform 0.3s ease;
           ">
-            <div style="
-              width: 0; 
-              height: 0; 
-              border-left: 12px solid transparent; 
-              border-right: 12px solid transparent; 
-              border-bottom: 20px solid #4285F4; 
+            <!-- Beam/Ray Effect -->
+            <div class="direction-beam" style="
               position: absolute;
-              top: 2px;
-              left: 0;
-              filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+              top: -15px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 0;
+              height: 0;
+              border-left: 8px solid transparent;
+              border-right: 8px solid transparent;
+              border-bottom: 25px solid rgba(66, 133, 244, 0.3);
+              z-index: 1;
             "></div>
-            <div style="
-              width: 8px; 
-              height: 8px; 
-              background: white; 
-              border-radius: 50%; 
+            
+            <!-- Main directional indicator -->
+            <div class="direction-arrow" style="
               position: absolute;
-              top: 8px;
-              left: 8px;
+              top: 5px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 0;
+              height: 0;
+              border-left: 8px solid transparent;
+              border-right: 8px solid transparent;
+              border-bottom: 18px solid #4285F4;
+              z-index: 3;
+              filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+            "></div>
+            
+            <!-- Center dot -->
+            <div class="center-dot" style="
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 12px;
+              height: 12px;
+              background: #4285F4;
+              border: 2px solid white;
+              border-radius: 50%;
+              z-index: 4;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            "></div>
+            
+            <!-- Outer pulse ring -->
+            <div class="pulse-ring" style="
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 30px;
+              height: 30px;
+              border: 2px solid rgba(66, 133, 244, 0.4);
+              border-radius: 50%;
+              z-index: 2;
+              animation: navigation-pulse 2s infinite ease-out;
             "></div>
           </div>
+          
+          <style>
+            @keyframes navigation-pulse {
+              0% { 
+                transform: translate(-50%, -50%) scale(0.8); 
+                opacity: 1; 
+              }
+              100% { 
+                transform: translate(-50%, -50%) scale(1.3); 
+                opacity: 0; 
+              }
+            }
+            .navigation-container {
+              transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+          </style>
         `,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
       });
     } else {
-      // Normal mode: pulsing dot
+      // Normal mode: simple pulsing dot
       return L.divIcon({
-        className: "custom-user-marker",
+        className: "custom-user-marker-static",
         html: `
-          <div style="
+          <div class="static-marker-container" style="
             width: 20px; 
             height: 20px; 
-            background: #4285F4; 
-            border: 3px solid white; 
-            border-radius: 50%; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3); 
-            position: relative; 
-            animation: pulse 2s infinite;
-          "></div>
+            position: relative;
+          ">
+            <div class="static-dot" style="
+              width: 16px; 
+              height: 16px; 
+              background: #4285F4; 
+              border: 2px solid white; 
+              border-radius: 50%; 
+              box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+            "></div>
+            <div class="static-pulse" style="
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 20px;
+              height: 20px;
+              border: 2px solid rgba(66, 133, 244, 0.4);
+              border-radius: 50%;
+              animation: static-pulse 2s infinite ease-in-out;
+            "></div>
+          </div>
+          
           <style>
-            @keyframes pulse { 
-              0% { transform: scale(1); } 
-              50% { transform: scale(1.2); } 
-              100% { transform: scale(1); } 
+            @keyframes static-pulse {
+              0%, 100% { 
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 0.7; 
+              }
+              50% { 
+                transform: translate(-50%, -50%) scale(1.4); 
+                opacity: 0.2; 
+              }
             }
           </style>
         `,
@@ -428,12 +512,16 @@ const DirectionsPage = () => {
     }
   };
 
-  // Function to update user marker icon
+  // Function to update user marker icon (optimized to prevent blinking)
   const updateUserMarkerIcon = (heading = 0) => {
-    if (userMarkerRef.current && window.L) {
-      const newIcon = createUserMarkerIcon(heading, isNavigating);
-      if (newIcon) {
-        userMarkerRef.current.setIcon(newIcon);
+    if (userMarkerRef.current && window.L && isNavigating) {
+      // Only update rotation, don't recreate the entire icon
+      const markerElement = userMarkerRef.current.getElement();
+      if (markerElement) {
+        const container = markerElement.querySelector(".navigation-container");
+        if (container) {
+          container.style.transform = `rotate(${heading}deg)`;
+        }
       }
     }
   };
@@ -592,10 +680,26 @@ const DirectionsPage = () => {
 
   // Update marker icon when navigation state changes
   useEffect(() => {
-    if (userMarkerRef.current) {
-      updateUserMarkerIcon(deviceHeading);
+    if (userMarkerRef.current && window.L) {
+      // Create new icon when switching modes
+      const newIcon = createUserMarkerIcon(deviceHeading, isNavigating);
+      if (newIcon) {
+        userMarkerRef.current.setIcon(newIcon);
+
+        // Add smooth zoom when starting navigation
+        if (isNavigating && mapInstanceRef.current) {
+          const currentZoom = mapInstanceRef.current.getZoom();
+          if (currentZoom < 16) {
+            mapInstanceRef.current.setView(
+              [userLocation.lat, userLocation.lon],
+              17,
+              { animate: true, duration: 1.5 }
+            );
+          }
+        }
+      }
     }
-  }, [isNavigating, deviceHeading]);
+  }, [isNavigating]); // Remove deviceHeading from dependency to prevent constant updates
 
   const startNavigation = async () => {
     if (!navigator.geolocation) {
