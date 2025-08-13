@@ -106,7 +106,7 @@ const CurrentLocationParking = () => {
                   )}
                 </div>
                 <div className="w-[70%]">
-                  <p className="text-xl font-medium">{lot.name}</p>
+                  <p className="text-xl font-raleway font-medium">{lot.name}</p>
                 </div>
               </div>
 
