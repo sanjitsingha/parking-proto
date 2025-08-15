@@ -3,7 +3,7 @@ import Topbar from "./_components/topbar";
 export default function Home() {
   return (
     <>
-      <Topbar />
+      <Topbar name={"Explore"} />
       <SearchModel />
     </>
   );

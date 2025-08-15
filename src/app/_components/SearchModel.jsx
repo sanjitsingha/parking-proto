@@ -100,7 +100,6 @@ const CurrentLocationParking = () => {
         <div className="  mb-2 rounded-md p-2">
           {nearbyLots.map((lot) => (
             <div
-              onClick={() => handleSelectLot(lot)}
               key={lot.id}
               className="p-3 cursor-pointer my-4 rounded-2xl bg-white"
             >
