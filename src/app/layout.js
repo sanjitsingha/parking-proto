@@ -16,10 +16,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${raleway.variable} antialiased`}>
-        <Navbar />
-        {children}
-      </body>
+      <body className={`${raleway.variable} antialiased`}>{children}</body>
     </html>
   );
 }

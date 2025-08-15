@@ -1,6 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Car, Cctv, SmartphoneCharging } from "lucide-react";
+import {
+  BatteryChargingIcon,
+  BikeIcon,
+  Car,
+  Cctv,
+  SmartphoneCharging,
+  Star,
+} from "lucide-react";
 import { getDistanceKm } from "../../utils/distance";
 import { useRouter } from "next/navigation";
 import { useParkingStore } from "../store/useParkingStore";
@@ -84,16 +91,16 @@ const CurrentLocationParking = () => {
   };
 
   return (
-    <div className="md:w-[400px] w-full h-fit p-2 bg-gray-200">
+    <div className="md:w-[400px]v pt-20 w-full h-[100vh] p-2 bg-gray-200">
       {nearbyLots.length > 0 && (
         <div className="  mb-2 rounded-md p-2">
           {nearbyLots.map((lot) => (
             <div
               onClick={() => handleSelectLot(lot)}
               key={lot.id}
-              className="p-2 cursor-pointer my-4 bg-white"
+              className="p-3 cursor-pointer my-4 rounded-2xl bg-white"
             >
-              <div className="w-full bg-red-200 flex">
+              <div className="w-full gap-2 flex">
                 <div className="w-[30%]">
                   {/* ✅ Show only first image */}
                   {lot.images?.[0] && (
@@ -102,21 +109,51 @@ const CurrentLocationParking = () => {
                       width={100}
                       height={100}
                       src={lot.images[0]}
+                      className="w-full h-full rounded-xl object-cover"
                     />
                   )}
                 </div>
                 <div className="w-[70%]">
-                  <p className="text-xl font-raleway font-medium">{lot.name}</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-lg font-raleway font-medium">
+                      {lot.name}
+                    </p>
+                    <span className="flex bg-yellow-200 px-2 py-0.5 rounded-md items-center gap-1">
+                      <Star size={14} />
+                      <p className="text-sm">4.5</p>
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-raleway font-semibold">
+                      {/* price */}
+                      {"Price: "}
+                      {lot.price_per_hour}
+                      {"/hr"}
+                    </p>
+                    <p className="font-raleway">
+                      {/* ev charging */}
+                      <span className="flex font-semibold items-center gap-1">
+                        <BatteryChargingIcon />
+
+                        {"Available"}
+                      </span>
+                    </p>
+                    <p className="font-raleway">
+                      {/* ev charging */}
+                      <span className="flex font-semibold items-center gap-1">
+                        <BikeIcon />
+
+                        {"Two Wheeler"}
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </div>
 
               <div className="w-full flex">
                 <span className="flex-1"></span>
                 <span className="bg-green-400/50 px-1 py-0.5 rounded-sm">
-                  <p>
-                    {lot.price_per_hour}
-                    {"/hr"}
-                  </p>
+                  <p></p>
                 </span>
               </div>
 
@@ -124,23 +161,6 @@ const CurrentLocationParking = () => {
                 <span className="flex items-center gap-2">
                   <Car size={32} />
                   <p>{lot.category}</p>
-                </span>
-                <span className="flex items-center gap-2">
-                  <Cctv size={32} />
-                  <p>{lot.cctv && "CCTV Available"}</p>
-                </span>
-                <span className="flex items-center gap-2">
-                  {lot.ev_charging === 1 ? (
-                    <>
-                      <SmartphoneCharging size={32} />
-                      <span>EV Charging Available</span>
-                    </>
-                  ) : (
-                    <>
-                      <SmartphoneCharging size={32} />
-                      <span>Not Available</span>
-                    </>
-                  )}
                 </span>
               </div>
             </div>
