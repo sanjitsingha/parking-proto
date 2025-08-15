@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Router from "next/router";
 import {
   BatteryChargingIcon,
   BikeIcon,
@@ -155,12 +156,15 @@ const CurrentLocationParking = () => {
 
               <div className="w-full mt-4 gap-8  h-[48px] flex">
                 <div className="w-1/2 rounded-md  flex justify-center items-center  bg-red-200">
-                  <Link className="flex items-center gap-2" href={"/"}>
+                  <button
+                    onClick={() => router.push(`/details/${lot.id}`)}
+                    className="flex items-center gap-2"
+                  >
                     <span className="font-semibold font-raleway">
                       View Details
                     </span>
                     <View />
-                  </Link>
+                  </button>
                 </div>
                 <div className="w-1/2 flex rounded-md  items-center justify-center bg-green-300">
                   <Link className="flex items-center gap-2" href={"/"}>
