@@ -166,12 +166,15 @@ const CurrentLocationParking = () => {
                   </button>
                 </div>
                 <div className="w-1/2 flex rounded-md  items-center justify-center bg-green-300">
-                  <Link className="flex items-center gap-2" href={"/"}>
+                  <button
+                    // onClick={handleSelectLot}
+                    className="flex items-center gap-2"
+                  >
                     <span className="font-semibold font-raleway">
                       Park Here
                     </span>
                     <MapPin />
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
