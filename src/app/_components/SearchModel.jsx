@@ -1,12 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   BatteryChargingIcon,
   BikeIcon,
   Car,
   Cctv,
+  MapPin,
   SmartphoneCharging,
   Star,
+  View,
 } from "lucide-react";
 import { getDistanceKm } from "../../utils/distance";
 import { useRouter } from "next/navigation";
@@ -150,18 +153,23 @@ const CurrentLocationParking = () => {
                 </div>
               </div>
 
-              <div className="w-full flex">
-                <span className="flex-1"></span>
-                <span className="bg-green-400/50 px-1 py-0.5 rounded-sm">
-                  <p></p>
-                </span>
-              </div>
-
-              <div className="w-full mt-3 flex flex-col gap-2">
-                <span className="flex items-center gap-2">
-                  <Car size={32} />
-                  <p>{lot.category}</p>
-                </span>
+              <div className="w-full mt-4 gap-8  h-[48px] flex">
+                <div className="w-1/2 rounded-md  flex justify-center items-center  bg-red-200">
+                  <Link className="flex items-center gap-2" href={"/"}>
+                    <span className="font-semibold font-raleway">
+                      View Details
+                    </span>
+                    <View />
+                  </Link>
+                </div>
+                <div className="w-1/2 flex rounded-md  items-center justify-center bg-green-300">
+                  <Link className="flex items-center gap-2" href={"/"}>
+                    <span className="font-semibold font-raleway">
+                      Park Here
+                    </span>
+                    <MapPin />
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
