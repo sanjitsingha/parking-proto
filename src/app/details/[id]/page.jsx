@@ -4,7 +4,14 @@ import { useParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import Topbar from "@/app/_components/topbar";
 import Image from "next/image";
-import { ArrowLeft, Cctv, MapPin, Star, TruckElectricIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Cctv,
+  IndianRupee,
+  MapPin,
+  Star,
+  TruckElectricIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const page = () => {
@@ -14,6 +21,38 @@ const page = () => {
 
   const supabase = createClientComponentClient();
   const [details, setDetails] = useState(null);
+  const reviews = [
+    {
+      id: "1",
+      stars: "2",
+      review: "very good",
+      date: "15/08/2025",
+    },
+    {
+      id: "2",
+      stars: "2",
+      review: "very good",
+      date: "15/08/2025",
+    },
+    {
+      id: "3",
+      stars: "2",
+      review: "poor",
+      date: "15/08/2025",
+    },
+    {
+      id: "4",
+      stars: "4",
+      review: "bad",
+      date: "15/08/2025",
+    },
+    {
+      id: "5",
+      stars: "4",
+      review: "wow",
+      date: "15/08/2025",
+    },
+  ];
 
   const handleGoBack = () => {
     router.back();
@@ -52,6 +91,12 @@ const page = () => {
       <div className=" fixed top-8 bg-green-500 border border-green-200 py-1 px-3 rounded-full right-5">
         <p className="text-white">{details.status}</p>
       </div>
+      <div className="w-full fixed bottom-0 p-5 h-30 rounded-t-lg">
+        <button className="w-full h-[60px] bg-green-400 flex items-center justify-center rounded-lg">
+          <MapPin size={22} color="white" />{" "}
+          <p className="font-semibold text-white text-xl">Park Here</p>
+        </button>
+      </div>
       <div className="w-full bg-gray-200 object-cover h-[300px]">
         <Image
           width={600}
@@ -62,6 +107,10 @@ const page = () => {
       </div>
       <div className="p-4">
         <h2 className="font-raleway text-2xl font-semibold">{details.name}</h2>
+        <span className="flex mt-2 text-black/60 items-center gap-1">
+          <IndianRupee color="green" size={16} />{" "}
+          <p className="font-medium ">{details.price_per_hour + " /hr"}</p>
+        </span>
         <span className="flex mt-2 text-black/60 items-center gap-1">
           <MapPin color="green" size={16} />{" "}
           <p className="font-medium ">{details.name}</p>
@@ -79,18 +128,46 @@ const page = () => {
         </span>
         <hr className="my-4 opacity-20" />
 
-        <div className="w-full grid grid-cols-3">
+        <div className="w-full grid   grid-cols-3">
           <div className="flex flex-col items-center">
             <TruckElectricIcon />
-            <p className="text-center">EV Charging Available</p>
+            <p className="text-center text-sm">EV Charging Available</p>
           </div>
           <div className="flex flex-col items-center">
             <Cctv />
-            <p className="text-center">CCTV Available</p>
+            <p className="text-center text-sm">CCTV Available</p>
           </div>
           <div className="flex flex-col items-center">
             <Cctv />
-            <p className="text-center">CCTV Available</p>
+            <p className="text-center text-sm">CCTV Available</p>
+          </div>
+        </div>
+        <hr className="my-4 opacity-20" />
+        <div className="w-full">
+          <p className="text-lg font-semibold">Information</p>
+          <p className="text-sm">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Autem
+            ducimus alias provident qui, adipisci corporis repellat, expedita ab
+            odit eligendi numquam consequatur facilis debitis quaerat laudantium
+            impedit. Eveniet, voluptatibus voluptatum.
+          </p>
+        </div>
+        <div className="w-full mt-5">
+          <p className="text-lg font-semibold">Reviews</p>
+          <div className="w-full mt-2 ">
+            {reviews.map((review) => (
+              <div key={review.id}>
+                <span className="bg-green-500 w-fit py-1 px-2 flex items-center rounded-lg text-white font-semibold">
+                  <Star size={16} />
+                  <p> {review.stars}</p>
+                </span>
+                <p>{review.review}</p>
+                <div className="w-full justify-end flex">
+                  <p>{review.date}</p>
+                </div>
+                <hr className="my-2 opacity-15" />
+              </div>
+            ))}
           </div>
         </div>
       </div>
