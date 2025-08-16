@@ -4,6 +4,7 @@ import Link from "next/link";
 import Router from "next/router";
 import {
   BatteryChargingIcon,
+  Bike,
   BikeIcon,
   Car,
   Cctv,
@@ -120,36 +121,38 @@ const CurrentLocationParking = () => {
                   )}
                 </div>
                 <div className="w-[70%]">
-                  <div className="flex justify-between items-center">
-                    <p className="text-lg font-raleway font-medium">
+                  <div className="flex justify-between ">
+                    <p className="text-[16px] font-raleway font-medium">
                       {lot.name}
                     </p>
-                    <span className="flex bg-yellow-200 px-2 py-0.5 rounded-md items-center gap-1">
+                    <span className="flex h-fit bg-green-200 px-2 py-0.5 rounded-md items-center gap-1">
                       <Star size={14} />
-                      <p className="text-sm">4.5</p>
+                      <p className="text-sm">20m</p>
                     </span>
                   </div>
                   <div>
-                    <p className="font-raleway font-semibold">
-                      {/* price */}
-                      {"Price: "}
-                      {lot.price_per_hour}
-                      {"/hr"}
-                    </p>
-                    <p className="font-raleway">
+                    <p className="font-raleway text-sm">
                       {/* ev charging */}
-                      <span className="flex font-semibold items-center gap-1">
-                        <BatteryChargingIcon />
+                      <span className="flex  items-center gap-1">
+                        <Star size={14} />
 
-                        {"Available"}
+                        {"4.3 (100+ Reviews)"}
                       </span>
                     </p>
-                    <p className="font-raleway">
+                    <p className="font-raleway text-sm">
                       {/* ev charging */}
-                      <span className="flex font-semibold items-center gap-1">
-                        <BikeIcon />
+                      <span className="flex  items-center gap-1">
+                        <BatteryChargingIcon size={14} />
 
-                        {"Two Wheeler"}
+                        {" EV Charging Available"}
+                      </span>
+                    </p>
+                    <p className="font-raleway text-sm">
+                      {/* ev charging */}
+                      <span className="flex  items-center gap-1">
+                        <Cctv size={14} />
+
+                        {"CCTV Available"}
                       </span>
                     </p>
                   </div>
