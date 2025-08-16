@@ -95,9 +95,12 @@ const CurrentLocationParking = () => {
   };
 
   return (
-    <div className="md:w-[400px]v pt-20 w-full h-[100vh] p-2 bg-gray-200">
+    <div className="md:w-[400px]v pt-28 w-full h-[100vh] p-4 bg-gray-200">
+      <div className="w-full">
+        <p className="text-lg font-raleway">Nearest Parking (500m)</p>
+      </div>
       {nearbyLots.length > 0 && (
-        <div className="  mb-2 rounded-md p-2">
+        <div className="  mb-2 rounded-md">
           {nearbyLots.map((lot) => (
             <div
               key={lot.id}
@@ -159,10 +162,7 @@ const CurrentLocationParking = () => {
                     onClick={() => router.push(`/details/${lot.id}`)}
                     className="flex items-center gap-2"
                   >
-                    <span className="font-semibold font-raleway">
-                      View Details
-                    </span>
-                    <View />
+                    <span className="font-semibold font-raleway">Details</span>
                   </button>
                 </div>
                 <div className="w-1/2 flex rounded-md  items-center justify-center bg-green-300">
