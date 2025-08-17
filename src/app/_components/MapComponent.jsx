@@ -1,49 +1,40 @@
 "use client";
-import { useEffect, useRef } from "react";
-import L from "leaflet";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useGeolocation } from "../hook/useGeolocation";
 import { CurrentLocationIcon } from "./CurrentLocationMarker";
+import LocationPointer from "./LocationPointer";
 
 export default function MapComponent() {
   const { position } = useGeolocation();
-  const mapRef = useRef(null);
-  const markerRef = useRef(null);
 
-  useEffect(() => {
-    if (!mapRef.current) {
-      mapRef.current = L.map("map").setView([26.7271, 88.3953], 13);
+  // Example fixed coordinates for red pointer
+  const customCoordinates = { lat: 26.73, lng: 88.4 };
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-      }).addTo(mapRef.current);
-    }
-  }, []);
+  return (
+    <div className="w-full h-screen">
+      <MapContainer
+        center={position ? [position.lat, position.lng] : [26.7271, 88.3953]}
+        zoom={15}
+        style={{ height: "100%", width: "100%" }}
+      >
+        {/* Base map */}
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        />
 
-  useEffect(() => {
-    if (position && mapRef.current) {
-      const { lat, lng, accuracy } = position;
+        {/* Blue current location marker */}
+        {position && (
+          <Marker
+            position={[position.lat, position.lng]}
+            icon={CurrentLocationIcon}
+          />
+        )}
 
-      if (markerRef.current) {
-        markerRef.current.setLatLng([lat, lng]);
-      } else {
-        markerRef.current = L.marker([lat, lng], {
-          icon: CurrentLocationIcon,
-        }).addTo(mapRef.current);
-      }
-
-      // Accuracy circle (like Google Maps)
-      L.circle([lat, lng], {
-        radius: accuracy,
-        color: "#2563eb",
-        fillColor: "#60a5fa",
-        fillOpacity: 0.2,
-      }).addTo(mapRef.current);
-
-      mapRef.current.setView([lat, lng], 16);
-    }
-  }, [position]);
-
-  return <div id="map" style={{ height: "100vh", width: "100%" }} />;
+        {/* Red custom pointer */}
+        <LocationPointer coordinates={customCoordinates} />
+      </MapContainer>
+    </div>
+  );
 }

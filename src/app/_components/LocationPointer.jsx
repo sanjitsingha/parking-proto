@@ -1,8 +1,8 @@
 "use client";
 import { Marker } from "react-leaflet";
-import { CustomPointerIcon } from "./CustomPointerIcon"; // <--- separate file for icon
+import { CustomPointerIcon } from "./CustomPointerIcon";
 
-const CurrentLocationMarker = ({ coordinates }) => {
+const LocationPointer = ({ coordinates }) => {
   if (!coordinates) return null;
 
   return (
@@ -13,4 +13,4 @@ const CurrentLocationMarker = ({ coordinates }) => {
   );
 };
 
-export default CurrentLocationMarker;
+export default LocationPointer;
