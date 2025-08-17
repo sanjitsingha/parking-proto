@@ -1,9 +1,10 @@
-import React from 'react'
+"use client";
+import dynamic from "next/dynamic";
 
-const page = () => {
-  return (
-    <div>page</div>
-  )
+const Map = dynamic(() => import("../_components/MapComponent"), {
+  ssr: false, // 👈 disables SSR for Leaflet
+});
+
+export default function Page() {
+  return <Map />;
 }
-
-export default page

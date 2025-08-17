@@ -2,6 +2,7 @@ import { Raleway } from "next/font/google";
 import "./globals.css";
 import topbar from "./_components/topbar";
 import Navbar from "./_components/Navbar";
+import "leaflet/dist/leaflet.css";
 
 const raleway = Raleway({
   variable: "--font-geist-sans",
