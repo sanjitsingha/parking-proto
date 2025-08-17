@@ -129,13 +129,16 @@ const loadCssOnce = (href, id) => {
   document.head.appendChild(link);
 };
 
-// Create user location marker
-const createUserCircleMarker = (isNavigating = false) => {
+// Create user location marker with direction arrow
+const createUserCircleMarker = (isNavigating = false, heading = null) => {
   const { L } = window;
   if (!L) return null;
 
   const color = isNavigating ? "#dc2626" : "#1E88E5";
-  const size = 16;
+  const size = 20;
+
+  // Show arrow when navigating and we have heading
+  const showArrow = isNavigating && heading !== null;
 
   return L.divIcon({
     className: "user-location-marker",
@@ -147,7 +150,27 @@ const createUserCircleMarker = (isNavigating = false) => {
         border: 3px solid white;
         border-radius: 50%;
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      "></div>
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        ${
+          showArrow
+            ? `
+          <div style="
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 8px solid white;
+            transform: rotate(${heading}deg);
+            position: absolute;
+          "></div>
+        `
+            : ""
+        }
+      </div>
     `,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -169,6 +192,8 @@ const DirectionsPage = () => {
   const [isLoadingMap, setIsLoadingMap] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [routeSummary, setRouteSummary] = useState(null);
+  const [userHeading, setUserHeading] = useState(null);
+  const lastUpdateRef = useRef(0);
 
   // Save/load selected lot
   useEffect(() => {
@@ -258,7 +283,7 @@ const DirectionsPage = () => {
         mapInstanceRef.current = map;
 
         // User marker
-        const userIcon = createUserCircleMarker(false);
+        const userIcon = createUserCircleMarker(false, null);
         const userMarker = L.marker([userLocation.lat, userLocation.lon], {
           icon: userIcon,
         }).addTo(map);
@@ -345,39 +370,47 @@ const DirectionsPage = () => {
     };
   }, [parkingLot, userLocation]);
 
-  // Update location during navigation
+  // Update location during navigation with throttling
   const updateUserLocation = useCallback(
-    (newLocation) => {
+    (newLocation, heading = null) => {
+      const now = Date.now();
+
+      // Throttle updates to prevent flickering (max 1 update per 2 seconds)
+      if (now - lastUpdateRef.current < 2000) {
+        return;
+      }
+      lastUpdateRef.current = now;
+
       setUserLocation(newLocation);
+      if (heading !== null) {
+        setUserHeading(heading);
+      }
 
       if (userMarkerRef.current && mapInstanceRef.current) {
+        // Smooth marker update
         userMarkerRef.current.setLatLng([newLocation.lat, newLocation.lon]);
-        mapInstanceRef.current.panTo([newLocation.lat, newLocation.lon]);
 
-        if (isNavigating && routingControlRef.current) {
-          try {
-            routingControlRef.current.setWaypoints([
-              window.L.latLng(newLocation.lat, newLocation.lon),
-              window.L.latLng(parkingLot.lat, parkingLot.lon),
-            ]);
-          } catch (e) {
-            // ignore routing errors
-          }
+        // Only pan map during navigation, not recalculate route constantly
+        if (isNavigating) {
+          mapInstanceRef.current.panTo([newLocation.lat, newLocation.lon], {
+            animate: true,
+            duration: 1,
+          });
         }
       }
     },
-    [isNavigating, parkingLot]
+    [isNavigating]
   );
 
   // Update marker style when navigation state changes
   useEffect(() => {
     if (!userMarkerRef.current) return;
 
-    const newIcon = createUserCircleMarker(isNavigating);
+    const newIcon = createUserCircleMarker(isNavigating, userHeading);
     if (newIcon) {
       userMarkerRef.current.setIcon(newIcon);
     }
-  }, [isNavigating]);
+  }, [isNavigating, userHeading]);
 
   // Navigation control
   const startNavigation = useCallback(async () => {
@@ -385,25 +418,49 @@ const DirectionsPage = () => {
 
     setIsNavigating(true);
 
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 5000, // Allow slightly cached positions to reduce updates
+    };
+
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        updateUserLocation({
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          accuracy: pos.coords.accuracy || 10,
-        });
+        // Calculate heading/bearing if we have a previous position
+        let heading = null;
+        if (userLocation && pos.coords.heading !== null) {
+          heading = pos.coords.heading; // Use device compass if available
+        } else if (userLocation) {
+          // Calculate bearing from previous position
+          const lat1 = (userLocation.lat * Math.PI) / 180;
+          const lat2 = (pos.coords.latitude * Math.PI) / 180;
+          const deltaLon =
+            ((pos.coords.longitude - userLocation.lon) * Math.PI) / 180;
+
+          const y = Math.sin(deltaLon) * Math.cos(lat2);
+          const x =
+            Math.cos(lat1) * Math.sin(lat2) -
+            Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
+
+          heading = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+        }
+
+        updateUserLocation(
+          {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+            accuracy: pos.coords.accuracy || 10,
+          },
+          heading
+        );
       },
       (err) => {
         console.error("Watch position error", err);
         stopNavigation();
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 1000,
-      }
+      options
     );
-  }, [updateUserLocation]);
+  }, [updateUserLocation, userLocation]);
 
   const stopNavigation = useCallback(() => {
     if (watchIdRef.current) {
