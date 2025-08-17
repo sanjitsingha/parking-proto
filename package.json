@@ -13,11 +13,13 @@
     "@supabase/supabase-js": "^2.54.0",
     "axios": "^1.11.0",
     "lucide-react": "^0.539.0",
+    "mapbox-gl": "^3.14.0",
     "mappls-web-maps": "^3.7.1-0",
     "next": "15.4.5",
     "rc-slider": "^11.1.8",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-map-gl": "^8.0.4",
     "zustand": "^5.0.7"
   },
   "devDependencies": {
