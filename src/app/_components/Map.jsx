@@ -1,71 +1,89 @@
+"use client";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import "leaflet/dist/leaflet.css";
 
-'use client'
-import { useEffect, useState } from 'react'
+// Dynamically import Leaflet components (no SSR errors)
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const CircleMarker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.CircleMarker),
+  { ssr: false }
+);
+const Circle = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Circle),
+  { ssr: false }
+);
 
-export default function MapmyIndiaMap() {
-  const [geoAllowed, setGeoAllowed] = useState(true)
+export default function Page() {
+  const [position, setPosition] = useState(null);
+  const targetLocation = { lat: 26.6002, lng: 88.2856 }; // Example target (parking lot)
 
   useEffect(() => {
-    // Load MapmyIndia SDK
-    const script = document.createElement('script')
-    script.src = 'https://apis.mappls.com/advancedmaps/v1/12ff7dbc2316b483c24ce71bc7068a56/map_load?v=1.5'
-    script.async = true
-    document.body.appendChild(script)
-
-    script.onload = () => {
-      // Ask for geolocation
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude
-            const lng = position.coords.longitude
-
-            // Initialize map with user's location
-            const map = new window['MapmyIndia'].Map('map', {
-              center: [lat, lng],
-              zoom: 14,
-            })
-
-            new window['MapmyIndia'].Marker({
-              map,
-              position: { lat, lng },
-              title: 'You are here',
-            })
-          },
-          (error) => {
-            // Permission denied or error
-            setGeoAllowed(false)
-          }
-        )
-      } else {
-        setGeoAllowed(false)
-      }
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
     }
 
-    return () => {
-      document.body.removeChild(script)
-    }
-  }, [])
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setPosition({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy, // meters
+        });
+      },
+      (err) => console.error("Geolocation error:", err),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  if (!position) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        📍 Getting location...
+      </div>
+    );
+  }
 
   return (
-    <>
-      {!geoAllowed && (
-        <div style={{ padding: '1rem', color: 'red', textAlign: 'center' }}>
-          🚫 Sorry, we can't access your location. Please enable location services to view the map.
-        </div>
-      )}
+    <div className="h-screen w-full">
+      <MapContainer
+        center={[position.lat, position.lng]}
+        zoom={15}
+        style={{ height: "100%", width: "100%" }}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      <div
-        id="map"
-        style={{
-          height: '500px',
-          width: '100%',
-          opacity: geoAllowed ? 1 : 0.3,
-          filter: geoAllowed ? 'none' : 'blur(2px)',
-          pointerEvents: geoAllowed ? 'auto' : 'none',
-        }}
-      />
-    </>
-  )
+        {/* 🔵 Current location */}
+        <CircleMarker
+          center={[position.lat, position.lng]}
+          radius={8}
+          pathOptions={{ color: "blue", fillColor: "blue", fillOpacity: 1 }}
+        />
+
+        {/* 🔵 Accuracy circle */}
+        <Circle
+          center={[position.lat, position.lng]}
+          radius={position.accuracy}
+          pathOptions={{ color: "blue", fillColor: "blue", fillOpacity: 0.2 }}
+        />
+
+        {/* 🔴 Target location */}
+        <CircleMarker
+          center={[targetLocation.lat, targetLocation.lng]}
+          radius={8}
+          pathOptions={{ color: "red", fillColor: "red", fillOpacity: 1 }}
+        />
+      </MapContainer>
+    </div>
+  );
 }
-
