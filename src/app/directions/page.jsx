@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParkingStore } from "../store/useParkingStore";
 
+// (StatusScreen and NavigationPanel components remain the same)
 const StatusScreen = ({ status, message, onRetry, onGoBack }) => {
   const renderContent = () => {
     switch (status) {
@@ -59,7 +60,6 @@ const StatusScreen = ({ status, message, onRetry, onGoBack }) => {
 
 const NavigationPanel = ({
   parkingLot,
-  userLocation,
   isNavigating,
   startNavigation,
   stopNavigation,
@@ -85,7 +85,6 @@ const NavigationPanel = ({
           )}
         </div>
       </div>
-
       <button
         onClick={isNavigating ? stopNavigation : startNavigation}
         className={`w-full rounded-lg py-4 text-white font-medium text-lg transition-colors ${
@@ -100,9 +99,9 @@ const NavigationPanel = ({
   </div>
 );
 
-// Load Leaflet CSS and JS from CDN (No API key required!)
 const loadLeafletResources = async () => {
-  // Load CSS
+  if (typeof window === "undefined") return;
+
   if (!document.getElementById("leaflet-css")) {
     const link = document.createElement("link");
     link.id = "leaflet-css";
@@ -111,7 +110,6 @@ const loadLeafletResources = async () => {
     document.head.appendChild(link);
   }
 
-  // Load JS
   if (!window.L && !document.getElementById("leaflet-js")) {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
@@ -125,11 +123,9 @@ const loadLeafletResources = async () => {
   return Promise.resolve();
 };
 
-// User location marker with direction arrow (Leaflet style)
 const createUserMarker = (heading, isNavigating) => {
   const { L } = window;
   if (!L) return null;
-
   const color = isNavigating ? "#dc2626" : "#1E88E5";
   const showArrow = isNavigating && heading !== null;
   const size = 20;
@@ -171,11 +167,9 @@ const createUserMarker = (heading, isNavigating) => {
   });
 };
 
-// Parking marker (Leaflet style)
 const createParkingMarker = () => {
   const { L } = window;
   if (!L) return null;
-
   return L.divIcon({
     className: "parking-marker",
     html: `
@@ -199,9 +193,8 @@ const createParkingMarker = () => {
   });
 };
 
-// Calculate distance between two points
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Earth's radius in km
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -214,26 +207,23 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Get route from OSRM API
 const getRoute = async (startLng, startLat, endLng, endLat) => {
   try {
     const response = await fetch(
       `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?geometries=geojson&overview=full`
     );
     const data = await response.json();
-
     if (data.routes && data.routes.length > 0) {
       const route = data.routes[0];
       const distanceKm = route.distance / 1000;
       const durationMin = route.duration / 60;
-
       return {
         geometry: route.geometry,
-        distance:
+        distanceText:
           distanceKm >= 1
             ? `${distanceKm.toFixed(1)} km`
             : `${Math.round(route.distance)} m`,
-        duration: `${Math.round(durationMin)} min`,
+        timeText: `${Math.round(durationMin)} min`,
       };
     }
   } catch (error) {
@@ -249,7 +239,6 @@ const DirectionsPage = () => {
   const userMarkerRef = useRef(null);
   const routeLayerRef = useRef(null);
   const watchIdRef = useRef(null);
-  const lastUpdateRef = useRef(0);
 
   const [parkingLot, setParkingLot] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -260,7 +249,7 @@ const DirectionsPage = () => {
   const [userHeading, setUserHeading] = useState(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  // Save/load selected lot
+  // Load selected lot from store or local storage
   useEffect(() => {
     if (selectedLot) {
       setParkingLot(selectedLot);
@@ -271,7 +260,7 @@ const DirectionsPage = () => {
     }
   }, [selectedLot]);
 
-  // Get initial location
+  // Initial location fetch
   useEffect(() => {
     setIsLoadingLocation(true);
     if (!navigator.geolocation) {
@@ -279,49 +268,50 @@ const DirectionsPage = () => {
       setIsLoadingLocation(false);
       return;
     }
-
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 300000,
+    };
+    const handleSuccess = (pos) => {
+      const location = {
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude,
+        accuracy: pos.coords.accuracy || 10,
+      };
+      setUserLocation(location);
+      setIsLoadingLocation(false);
+    };
+    const handleError = (err) => {
+      let msg = "Unable to get location";
+      if (err.code === err.PERMISSION_DENIED)
+        msg = "Location permission denied";
+      else if (err.code === err.TIMEOUT) msg = "Location request timed out";
+      setLocationError(msg);
+      setIsLoadingLocation(false);
+    };
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const location = {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          accuracy: pos.coords.accuracy || 10,
-        };
-        setUserLocation(location);
-        setIsLoadingLocation(false);
-      },
-      (err) => {
-        let msg = "Unable to get location";
-        if (err.code === err.PERMISSION_DENIED)
-          msg = "Location permission denied";
-        else if (err.code === err.TIMEOUT) msg = "Location request timed out";
-        setLocationError(msg);
-        setIsLoadingLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000,
-      }
+      handleSuccess,
+      handleError,
+      options
     );
   }, []);
 
-  // Initialize map when we have both locations
+  // Map initialization and cleanup
   useEffect(() => {
     if (!parkingLot || !userLocation || typeof window === "undefined") return;
     if (mapInstanceRef.current) return;
 
+    let mounted = true;
     const initMap = async () => {
       try {
         await loadLeafletResources();
+        if (!mounted || !window.L) return;
 
         const { L } = window;
-
-        // Calculate center point
         const centerLat = (userLocation.lat + parkingLot.lat) / 2;
         const centerLng = (userLocation.lon + parkingLot.lon) / 2;
 
-        // Create map with OpenStreetMap tiles (no API key needed!)
         const map = L.map(mapRef.current, {
           center: [centerLat, centerLng],
           zoom: 14,
@@ -330,29 +320,19 @@ const DirectionsPage = () => {
           markerZoomAnimation: true,
         });
 
-        // Add OpenStreetMap tiles
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom: 19,
-          attribution: "© OpenStreetMap contributors",
+          attribution: "©Parking Sliguri",
         }).addTo(map);
 
         mapInstanceRef.current = map;
         setIsMapLoaded(true);
 
-        // Add user marker
-        const userIcon = createUserMarker(userHeading, isNavigating);
-        const userMarker = L.marker([userLocation.lat, userLocation.lon], {
-          icon: userIcon,
-        }).addTo(map);
-        userMarkerRef.current = userMarker;
-
-        // Add parking marker
         const parkingIcon = createParkingMarker();
-        const parkingMarker = L.marker([parkingLot.lat, parkingLot.lon], {
-          icon: parkingIcon,
-        }).addTo(map);
+        L.marker([parkingLot.lat, parkingLot.lon], { icon: parkingIcon }).addTo(
+          map
+        );
 
-        // Get and display route
         const route = await getRoute(
           userLocation.lon,
           userLocation.lat,
@@ -361,24 +341,16 @@ const DirectionsPage = () => {
         );
 
         if (route) {
-          // Add route as polyline
           const routeLine = L.polyline(
-            route.geometry.coordinates.map((coord) => [coord[1], coord[0]]), // Flip lng,lat to lat,lng
-            {
-              color: "#2563eb",
-              weight: 5,
-              opacity: 0.8,
-            }
+            route.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
+            { color: "#2563eb", weight: 5, opacity: 0.8 }
           ).addTo(map);
-
           routeLayerRef.current = routeLine;
-
           setRouteSummary({
-            distanceText: route.distance,
-            timeText: route.duration,
+            distanceText: route.distanceText,
+            timeText: route.timeText,
           });
         } else {
-          // Fallback distance calculation
           const dist = calculateDistance(
             userLocation.lat,
             userLocation.lon,
@@ -393,28 +365,17 @@ const DirectionsPage = () => {
             timeText: `${Math.round(dist * 12)} min`,
           });
         }
-
-        // Fit bounds to show both markers
-        const group = L.featureGroup([userMarker, parkingMarker]);
-        if (routeLayerRef.current) {
-          group.addLayer(routeLayerRef.current);
-        }
-        map.fitBounds(group.getBounds().pad(0.1));
       } catch (error) {
         console.error("Error initializing map:", error);
-        setIsMapLoaded(false);
+        if (mounted) setIsMapLoaded(false);
       }
     };
-
     initMap();
 
     return () => {
+      mounted = false;
       if (mapInstanceRef.current) {
-        try {
-          mapInstanceRef.current.remove();
-        } catch (e) {
-          console.warn("Error removing map", e);
-        }
+        mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
         userMarkerRef.current = null;
         routeLayerRef.current = null;
@@ -422,99 +383,36 @@ const DirectionsPage = () => {
     };
   }, [parkingLot, userLocation]);
 
-  // Update location during navigation with throttling
-  const updateUserLocation = useCallback(
-    (newLocation, heading = null) => {
-      const now = Date.now();
-
-      // Throttle updates to prevent flickering (max 1 update per 3 seconds)
-      if (now - lastUpdateRef.current < 3000) {
-        return;
-      }
-      lastUpdateRef.current = now;
-
-      setUserLocation(newLocation);
-      if (heading !== null) {
-        setUserHeading(heading);
-      }
-
-      // Update marker position and style
-      if (userMarkerRef.current && mapInstanceRef.current) {
-        const { L } = window;
-
-        // Update position
-        userMarkerRef.current.setLatLng([newLocation.lat, newLocation.lon]);
-
-        // Update marker icon with new heading
-        const newIcon = createUserMarker(heading, isNavigating);
+  // Update user marker and map view
+  useEffect(() => {
+    if (mapInstanceRef.current && userLocation) {
+      const { L } = window;
+      if (!userMarkerRef.current) {
+        const userIcon = createUserMarker(userHeading, isNavigating);
+        userMarkerRef.current = L.marker([userLocation.lat, userLocation.lon], {
+          icon: userIcon,
+        }).addTo(mapInstanceRef.current);
+      } else {
+        userMarkerRef.current.setLatLng([userLocation.lat, userLocation.lon]);
+        const newIcon = createUserMarker(userHeading, isNavigating);
         if (newIcon) {
           userMarkerRef.current.setIcon(newIcon);
         }
       }
 
-      // Follow user during navigation
-      if (isNavigating && mapInstanceRef.current) {
-        mapInstanceRef.current.flyTo(
-          [newLocation.lat, newLocation.lon],
-          Math.max(mapInstanceRef.current.getZoom(), 16),
-          { duration: 1 }
-        );
+      // Fit bounds when markers are first added
+      if (!isNavigating && mapInstanceRef.current && routeLayerRef.current) {
+        const group = L.featureGroup([
+          userMarkerRef.current,
+          L.marker([parkingLot.lat, parkingLot.lon]),
+          routeLayerRef.current,
+        ]);
+        mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1));
       }
-    },
-    [isNavigating]
-  );
+    }
+  }, [userLocation, userHeading, isNavigating, parkingLot]);
 
-  // Navigation control
-  const startNavigation = useCallback(async () => {
-    if (!navigator.geolocation) return alert("Geolocation not supported");
-
-    setIsNavigating(true);
-
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 5000,
-    };
-
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        let heading = null;
-
-        // Use device compass if available
-        if (pos.coords.heading !== null && pos.coords.heading !== undefined) {
-          heading = pos.coords.heading;
-        } else if (userLocation) {
-          // Calculate bearing from movement
-          const lat1 = (userLocation.lat * Math.PI) / 180;
-          const lat2 = (pos.coords.latitude * Math.PI) / 180;
-          const deltaLon =
-            ((pos.coords.longitude - userLocation.lon) * Math.PI) / 180;
-
-          const y = Math.sin(deltaLon) * Math.cos(lat2);
-          const x =
-            Math.cos(lat1) * Math.sin(lat2) -
-            Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
-
-          heading = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
-        }
-
-        updateUserLocation(
-          {
-            lat: pos.coords.latitude,
-            lon: pos.coords.longitude,
-            accuracy: pos.coords.accuracy || 10,
-          },
-          heading
-        );
-      },
-      (err) => {
-        console.error("Watch position error", err);
-        stopNavigation();
-      },
-      options
-    );
-  }, [updateUserLocation, userLocation]);
-
+  // --- Solution: Define functions before use and use a single useCallback for navigation control ---
   const stopNavigation = useCallback(() => {
     if (watchIdRef.current) {
       navigator.geolocation.clearWatch(watchIdRef.current);
@@ -524,6 +422,80 @@ const DirectionsPage = () => {
     setUserHeading(null);
   }, []);
 
+  const startNavigation = useCallback(() => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
+    }
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 5000,
+    };
+    setIsNavigating(true);
+
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const newLocation = {
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          accuracy: pos.coords.accuracy || 10,
+        };
+        const heading =
+          pos.coords.heading !== null && pos.coords.heading !== undefined
+            ? pos.coords.heading
+            : userLocation
+            ? ((Math.atan2(
+                Math.sin(
+                  ((pos.coords.longitude - userLocation.lon) * Math.PI) / 180
+                ) * Math.cos((pos.coords.latitude * Math.PI) / 180),
+                Math.cos((userLocation.lat * Math.PI) / 180) *
+                  Math.sin((pos.coords.latitude * Math.PI) / 180) -
+                  Math.sin((userLocation.lat * Math.PI) / 180) *
+                    Math.cos((pos.coords.latitude * Math.PI) / 180) *
+                    Math.cos(
+                      ((pos.coords.longitude - userLocation.lon) * Math.PI) /
+                        180
+                    )
+              ) *
+                180) /
+                Math.PI +
+                360) %
+              360
+            : null;
+
+        setUserLocation(newLocation);
+        setUserHeading(heading);
+
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo(
+            [newLocation.lat, newLocation.lon],
+            Math.max(mapInstanceRef.current.getZoom(), 17),
+            { duration: 1 }
+          );
+        }
+      },
+      (err) => {
+        console.error("Watch position error", err);
+        // Call the stable stopNavigation function
+        stopNavigation();
+      },
+      options
+    );
+  }, [userLocation, stopNavigation]); // Dependencies are crucial here
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopNavigation();
+    };
+  }, [stopNavigation]);
+
+  // (The rest of the component's JSX remains the same)
   if (!parkingLot)
     return (
       <StatusScreen status="no-lot" onGoBack={() => window.history.back()} />
@@ -546,7 +518,6 @@ const DirectionsPage = () => {
           className="w-full h-full"
           style={{ minHeight: 420 }}
         />
-
         {!isMapLoaded && (
           <div className="absolute inset-0 bg-white flex items-center justify-center z-[1000]">
             <div className="text-center">
@@ -556,7 +527,6 @@ const DirectionsPage = () => {
           </div>
         )}
       </div>
-
       <NavigationPanel
         parkingLot={parkingLot}
         userLocation={userLocation}
