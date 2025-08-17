@@ -468,6 +468,7 @@ const DirectionsPage = () => {
       watchIdRef.current = null;
     }
     setIsNavigating(false);
+    setUserHeading(null); // Reset heading when stopping
   }, []);
 
   if (!parkingLot)
