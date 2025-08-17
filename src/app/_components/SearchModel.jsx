@@ -8,6 +8,8 @@ import {
   BikeIcon,
   Car,
   Cctv,
+  CornerUpRight,
+  CornerUpRightIcon,
   MapPin,
   SmartphoneCharging,
   Star,
@@ -126,23 +128,15 @@ const CurrentLocationParking = () => {
                       {lot.name}
                     </p>
                     <span className="flex h-fit bg-green-200 px-2 py-0.5 rounded-md items-center gap-1">
-                      <Star size={14} />
+                      <CornerUpRight size={14} />
                       <p className="text-sm">20m</p>
                     </span>
                   </div>
-                  <div>
+                  <div className="flex flex-col mt-3 gap-1">
                     <p className="font-raleway text-sm">
                       {/* ev charging */}
                       <span className="flex  items-center gap-1">
-                        <Star size={14} />
-
-                        {"4.3 (100+ Reviews)"}
-                      </span>
-                    </p>
-                    <p className="font-raleway text-sm">
-                      {/* ev charging */}
-                      <span className="flex  items-center gap-1">
-                        <BatteryChargingIcon size={14} />
+                        <Car size={14} />
 
                         {" EV Charging Available"}
                       </span>
@@ -170,7 +164,9 @@ const CurrentLocationParking = () => {
                 </div>
                 <div className="w-1/2 flex rounded-md  items-center justify-center bg-green-300">
                   <button
-                    // onClick={handleSelectLot}
+                    onClick={()=>{
+                      handleSelectLot(lot);
+                    }}
                     className="flex items-center gap-2"
                   >
                     <span className="font-semibold font-raleway">

@@ -21,6 +21,8 @@ const page = () => {
 
   const supabase = createClientComponentClient();
   const [details, setDetails] = useState(null);
+  const [activeTab, setactiveTab] = useState("information");
+
   const reviews = [
     {
       id: "1",
@@ -77,9 +79,9 @@ const page = () => {
     }
   }, [id]);
 
+  //   Later on this loading witll changed to loading Animation, or shimmer efect
   if (!details) return <p>Loading...</p>;
 
-  console.log(details);
   return (
     <div className="w-full font-raleway">
       <button
@@ -88,9 +90,7 @@ const page = () => {
       >
         <ArrowLeft />
       </button>
-      <div className=" fixed top-8 bg-green-500 border border-green-200 py-1 px-3 rounded-full right-5">
-        <p className="text-white">{details.status}</p>
-      </div>
+
       <div className="w-full fixed bottom-0 p-5 h-30 rounded-t-lg">
         <button className="w-full h-[60px] bg-green-400 flex items-center justify-center rounded-lg">
           <MapPin size={22} color="white" />{" "}
@@ -106,6 +106,9 @@ const page = () => {
         />
       </div>
       <div className="p-4">
+        <div className=" bg-green-500  w-fit h-fit py-1 px-3 rounded-full ">
+          <p className="text-white text-[8px]">{details.status}</p>
+        </div>
         <h2 className="font-raleway text-2xl font-semibold">{details.name}</h2>
         <span className="flex mt-2 text-black/60 items-center gap-1">
           <IndianRupee color="green" size={16} />{" "}
@@ -143,32 +146,61 @@ const page = () => {
           </div>
         </div>
         <hr className="my-4 opacity-20" />
-        <div className="w-full">
-          <p className="text-lg font-semibold">Information</p>
-          <p className="text-sm">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Autem
-            ducimus alias provident qui, adipisci corporis repellat, expedita ab
-            odit eligendi numquam consequatur facilis debitis quaerat laudantium
-            impedit. Eveniet, voluptatibus voluptatum.
-          </p>
+        <div className="w-full flex gap-3">
+          <button
+            onClick={() => setactiveTab("information")}
+            className={`text-lg font-semibold ${
+              activeTab === "information"
+                ? "border-b-2 border-blue-500 text-blue-500 font-semibold"
+                : "text-gray-500"
+            }`}
+          >
+            Information
+          </button>
+          <button
+            onClick={() => setactiveTab("reviews")}
+            className={`text-lg font-semibold ${
+              activeTab === "reviews"
+                ? "border-b-2 border-blue-500 text-blue-500 font-semibold"
+                : "text-gray-500"
+            }`}
+          >
+            Reviews
+          </button>
+        </div>
+        <div>
+          {activeTab === "information" && (
+            <p className="text-sm">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Autem
+              ducimus alias provident qui, adipisci corporis repellat, expedita
+              ab odit eligendi numquam consequatur facilis debitis quaerat
+              laudantium impedit. Eveniet, voluptatibus voluptatum.
+            </p>
+          )}
         </div>
         <div className="w-full mt-5">
-          <p className="text-lg font-semibold">Reviews</p>
-          <div className="w-full mt-2 ">
-            {reviews.map((review) => (
-              <div key={review.id}>
-                <span className="bg-green-500 w-fit py-1 px-2 flex items-center rounded-lg text-white font-semibold">
-                  <Star size={16} />
-                  <p> {review.stars}</p>
-                </span>
-                <p>{review.review}</p>
-                <div className="w-full justify-end flex">
-                  <p>{review.date}</p>
-                </div>
-                <hr className="my-2 opacity-15" />
+          {activeTab === "reviews" && (
+            <div className="w-full mt-2 ">
+              <div className="w-full ">
+                <button className="w-full h-[32px] bg-green-500">
+                  Write a Review
+                </button>
               </div>
-            ))}
-          </div>
+              {reviews.map((review) => (
+                <div key={review.id}>
+                  <span className="bg-green-500 w-fit py-1 px-2 flex items-center rounded-lg text-white font-semibold">
+                    <Star size={16} />
+                    <p> {review.stars}</p>
+                  </span>
+                  <p>{review.review}</p>
+                  <div className="w-full justify-end flex">
+                    <p>{review.date}</p>
+                  </div>
+                  <hr className="my-2 opacity-15" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
