@@ -1,25 +1,26 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function useGeolocation() {
   const [position, setPosition] = useState(null);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !navigator.geolocation) return;
+    if (!navigator.geolocation) return;
 
-    const watcher = navigator.geolocation.watchPosition(
+    const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         setPosition({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
         });
       },
       (err) => console.error("Geolocation error:", err),
       { enableHighAccuracy: true }
     );
 
-    return () => navigator.geolocation.clearWatch(watcher);
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  return position;
+  return { position };
 }

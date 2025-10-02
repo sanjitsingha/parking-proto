@@ -1,11 +1,17 @@
-import { Raleway } from "next/font/google";
+import { Raleway, Inter } from "next/font/google";
 import "./globals.css";
 import topbar from "./_components/topbar";
 import Navbar from "./_components/Navbar";
 import "leaflet/dist/leaflet.css";
+import Navbar2 from "./_components/Navbar2";
 
 const raleway = Raleway({
   variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -17,7 +23,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${raleway.variable} antialiased`}>{children}</body>
+      <body className={`${raleway.variable} ${inter.variable}  antialiased`}>
+        <Navbar2 />
+        {children}
+      </body>
     </html>
   );
 }

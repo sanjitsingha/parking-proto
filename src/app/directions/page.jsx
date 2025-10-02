@@ -1,542 +1,336 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { useParkingStore } from "../store/useParkingStore";
 
-// (StatusScreen and NavigationPanel components remain the same)
-const StatusScreen = ({ status, message, onRetry, onGoBack }) => {
-  const renderContent = () => {
-    switch (status) {
-      case "no-lot":
-        return (
-          <>
-            <div className="text-gray-400 mb-3">🚗</div>
-            <h3 className="text-lg font-medium text-gray-800 mb-2">
-              No Parking Lot Selected
-            </h3>
-            <p className="text-gray-600 text-sm mb-4">
-              Please go back and select a parking lot first.
-            </p>
-            <button
-              onClick={onGoBack}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg"
-            >
-              Go Back
-            </button>
-          </>
-        );
-      case "loading-location":
-        return (
-          <>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2" />
-            <p className="text-gray-600 text-sm">Getting your location...</p>
-          </>
-        );
-      case "location-error":
-        return (
-          <>
-            <div className="text-red-400 mb-3">⚠️</div>
-            <h3 className="text-lg font-medium text-gray-800 mb-2">
-              Location Access Required
-            </h3>
-            <p className="text-gray-600 text-sm mb-4">{message}</p>
-            <button
-              onClick={onRetry}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg"
-            >
-              Try Again
-            </button>
-          </>
-        );
-      default:
-        return null;
-    }
-  };
-  return (
-    <div className="w-full h-[100vh] flex items-center justify-center">
-      <div className="text-center max-w-md px-4">{renderContent()}</div>
-    </div>
-  );
-};
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-const NavigationPanel = ({
-  parkingLot,
-  isNavigating,
-  startNavigation,
-  stopNavigation,
-  routeSummary,
-}) => (
-  <div className="bg-white shadow-lg border-t">
-    <div className="p-4">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-800 mb-1">
-            {parkingLot.name}
-          </h3>
-          <p className="text-green-600 font-medium text-lg mb-2">
-            {parkingLot.price}
-          </p>
-          <div className="text-gray-500 text-sm">
-            Distance: {routeSummary?.distanceText || "Calculating..."}
-          </div>
-        </div>
-        <div className="ml-4 text-right">
-          {routeSummary && (
-            <div className="text-xs text-gray-600">{routeSummary.timeText}</div>
-          )}
-        </div>
-      </div>
-      <button
-        onClick={isNavigating ? stopNavigation : startNavigation}
-        className={`w-full rounded-lg py-4 text-white font-medium text-lg transition-colors ${
-          isNavigating
-            ? "bg-red-500 hover:bg-red-600"
-            : "bg-blue-500 hover:bg-blue-600"
-        }`}
-      >
-        {isNavigating ? "Stop Navigation" : "Start Navigation"}
-      </button>
-    </div>
-  </div>
-);
+// OpenLayers core + styles
+import "ol/ol.css";
+import Map from "ol/Map";
+import View from "ol/View";
+import TileLayer from "ol/layer/Tile";
+import VectorLayer from "ol/layer/Vector";
+import OSM from "ol/source/OSM";
+import VectorSource from "ol/source/Vector";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
+import { fromLonLat } from "ol/proj";
+import { Style, Icon, Stroke } from "ol/style";
+import Polyline from "ol/format/Polyline";
 
-const loadLeafletResources = async () => {
-  if (typeof window === "undefined") return;
+/**
+ * DirectionsPage (refactored)
+ * - Validates URL params (lat/lng)
+ * - Gets high-accuracy live location with watchPosition
+ * - Draws destination marker (red) + current marker (blue)
+ * - Fetches & renders driving route via OSRM (polyline6)
+ * - "Start Navigation" enables follow mode (smooth pan to user)
+ * - "View on Google Maps" opens native directions
+ * - No flicker: markers/layers created once; only geometries are updated
+ */
+export default function DirectionsPage() {
+  const mapEl = useRef(null);
+  const mapRef = useRef(/** @type {Map|null} */ (null));
 
-  if (!document.getElementById("leaflet-css")) {
-    const link = document.createElement("link");
-    link.id = "leaflet-css";
-    link.rel = "stylesheet";
-    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    document.head.appendChild(link);
-  }
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  if (!window.L && !document.getElementById("leaflet-js")) {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.id = "leaflet-js";
-      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
-  }
-  return Promise.resolve();
-};
+  // === Parse and validate destination ===
+  const dest = useMemo(() => {
+    const lat = parseFloat(searchParams.get("lat"));
+    const lng = parseFloat(searchParams.get("lng"));
+    if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+    return null;
+  }, [searchParams]);
 
-const createUserMarker = (heading, isNavigating) => {
-  const { L } = window;
-  if (!L) return null;
-  const color = isNavigating ? "#dc2626" : "#1E88E5";
-  const showArrow = isNavigating && heading !== null;
-  const size = 20;
+  // === UI state ===
+  const [loading, setLoading] = useState(true);
+  const [permissionError, setPermissionError] = useState("");
+  const [isFollowing, setIsFollowing] = useState(false);
 
-  return L.divIcon({
-    className: "user-location-marker",
-    html: `
-      <div style="
-        width: ${size}px;
-        height: ${size}px;
-        background: ${color};
-        border: 3px solid white;
-        border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        ${
-          showArrow
-            ? `
-          <div style="
-            width: 0;
-            height: 0;
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-bottom: 8px solid white;
-            transform: rotate(${heading}deg);
-            position: absolute;
-          "></div>
-        `
-            : ""
-        }
-      </div>
-    `,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-  });
-};
+  // === Live location (watch) ===
+  const [userLL, setUserLL] = useState(null); // {lat,lng}
+  const lastCoordsRef = useRef(null);
 
-const createParkingMarker = () => {
-  const { L } = window;
-  if (!L) return null;
-  return L.divIcon({
-    className: "parking-marker",
-    html: `
-      <div style="
-        width: 36px;
-        height: 36px;
-        background: #10B981;
-        color: #fff;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 18px;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-        border: 2px solid white;
-      ">P</div>
-    `,
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-  });
-};
+  // Smoothing factor for position updates (0..1). Higher = snappier, Lower = smoother
+  const ALPHA = 0.35;
 
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
-
-const getRoute = async (startLng, startLat, endLng, endLat) => {
-  try {
-    const response = await fetch(
-      `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?geometries=geojson&overview=full`
-    );
-    const data = await response.json();
-    if (data.routes && data.routes.length > 0) {
-      const route = data.routes[0];
-      const distanceKm = route.distance / 1000;
-      const durationMin = route.duration / 60;
-      return {
-        geometry: route.geometry,
-        distanceText:
-          distanceKm >= 1
-            ? `${distanceKm.toFixed(1)} km`
-            : `${Math.round(route.distance)} m`,
-        timeText: `${Math.round(durationMin)} min`,
-      };
-    }
-  } catch (error) {
-    console.error("Error fetching route:", error);
-  }
-  return null;
-};
-
-const DirectionsPage = () => {
-  const { selectedLot } = useParkingStore();
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const userMarkerRef = useRef(null);
-  const routeLayerRef = useRef(null);
-  const watchIdRef = useRef(null);
-
-  const [parkingLot, setParkingLot] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
-  const [locationError, setLocationError] = useState(null);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [routeSummary, setRouteSummary] = useState(null);
-  const [userHeading, setUserHeading] = useState(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-
-  // Load selected lot from store or local storage
   useEffect(() => {
-    if (selectedLot) {
-      setParkingLot(selectedLot);
-      localStorage.setItem("selectedParkingLot", JSON.stringify(selectedLot));
-    } else {
-      const saved = localStorage.getItem("selectedParkingLot");
-      if (saved) setParkingLot(JSON.parse(saved));
-    }
-  }, [selectedLot]);
-
-  // Initial location fetch
-  useEffect(() => {
-    setIsLoadingLocation(true);
-    if (!navigator.geolocation) {
-      setLocationError("Geolocation not supported");
-      setIsLoadingLocation(false);
+    if (!("geolocation" in navigator)) {
+      setPermissionError("Geolocation not supported by your browser.");
+      setLoading(false);
       return;
     }
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 300000,
-    };
-    const handleSuccess = (pos) => {
-      const location = {
-        lat: pos.coords.latitude,
-        lon: pos.coords.longitude,
-        accuracy: pos.coords.accuracy || 10,
-      };
-      setUserLocation(location);
-      setIsLoadingLocation(false);
-    };
-    const handleError = (err) => {
-      let msg = "Unable to get location";
-      if (err.code === err.PERMISSION_DENIED)
-        msg = "Location permission denied";
-      else if (err.code === err.TIMEOUT) msg = "Location request timed out";
-      setLocationError(msg);
-      setIsLoadingLocation(false);
-    };
-    navigator.geolocation.getCurrentPosition(
-      handleSuccess,
-      handleError,
-      options
-    );
-  }, []);
 
-  // Map initialization and cleanup
-  useEffect(() => {
-    if (!parkingLot || !userLocation || typeof window === "undefined") return;
-    if (mapInstanceRef.current) return;
+    const opts = { enableHighAccuracy: true, timeout: 8000, maximumAge: 1000 };
 
-    let mounted = true;
-    const initMap = async () => {
-      try {
-        await loadLeafletResources();
-        if (!mounted || !window.L) return;
-
-        const { L } = window;
-        const centerLat = (userLocation.lat + parkingLot.lat) / 2;
-        const centerLng = (userLocation.lon + parkingLot.lon) / 2;
-
-        const map = L.map(mapRef.current, {
-          center: [centerLat, centerLng],
-          zoom: 14,
-          zoomAnimation: true,
-          fadeAnimation: true,
-          markerZoomAnimation: true,
-        });
-
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-          attribution: "©Parking Sliguri",
-        }).addTo(map);
-
-        mapInstanceRef.current = map;
-        setIsMapLoaded(true);
-
-        const parkingIcon = createParkingMarker();
-        L.marker([parkingLot.lat, parkingLot.lon], { icon: parkingIcon }).addTo(
-          map
-        );
-
-        const route = await getRoute(
-          userLocation.lon,
-          userLocation.lat,
-          parkingLot.lon,
-          parkingLot.lat
-        );
-
-        if (route) {
-          const routeLine = L.polyline(
-            route.geometry.coordinates.map((coord) => [coord[1], coord[0]]),
-            { color: "#2563eb", weight: 5, opacity: 0.8 }
-          ).addTo(map);
-          routeLayerRef.current = routeLine;
-          setRouteSummary({
-            distanceText: route.distanceText,
-            timeText: route.timeText,
-          });
-        } else {
-          const dist = calculateDistance(
-            userLocation.lat,
-            userLocation.lon,
-            parkingLot.lat,
-            parkingLot.lon
-          );
-          setRouteSummary({
-            distanceText:
-              dist >= 1
-                ? `${dist.toFixed(1)} km`
-                : `${Math.round(dist * 1000)} m`,
-            timeText: `${Math.round(dist * 12)} min`,
-          });
-        }
-      } catch (error) {
-        console.error("Error initializing map:", error);
-        if (mounted) setIsMapLoaded(false);
-      }
-    };
-    initMap();
-
-    return () => {
-      mounted = false;
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-        userMarkerRef.current = null;
-        routeLayerRef.current = null;
-      }
-    };
-  }, [parkingLot, userLocation]);
-
-  // Update user marker and map view
-  useEffect(() => {
-    if (mapInstanceRef.current && userLocation) {
-      const { L } = window;
-      if (!userMarkerRef.current) {
-        const userIcon = createUserMarker(userHeading, isNavigating);
-        userMarkerRef.current = L.marker([userLocation.lat, userLocation.lon], {
-          icon: userIcon,
-        }).addTo(mapInstanceRef.current);
-      } else {
-        userMarkerRef.current.setLatLng([userLocation.lat, userLocation.lon]);
-        const newIcon = createUserMarker(userHeading, isNavigating);
-        if (newIcon) {
-          userMarkerRef.current.setIcon(newIcon);
-        }
-      }
-
-      // Fit bounds when markers are first added
-      if (!isNavigating && mapInstanceRef.current && routeLayerRef.current) {
-        const group = L.featureGroup([
-          userMarkerRef.current,
-          L.marker([parkingLot.lat, parkingLot.lon]),
-          routeLayerRef.current,
-        ]);
-        mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1));
-      }
-    }
-  }, [userLocation, userHeading, isNavigating, parkingLot]);
-
-  // --- Solution: Define functions before use and use a single useCallback for navigation control ---
-  const stopNavigation = useCallback(() => {
-    if (watchIdRef.current) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-    setIsNavigating(false);
-    setUserHeading(null);
-  }, []);
-
-  const startNavigation = useCallback(() => {
-    if (!navigator.geolocation) {
-      alert("Geolocation not supported");
-      return;
-    }
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 5000,
-    };
-    setIsNavigating(true);
-
-    if (watchIdRef.current) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-    }
-
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const newLocation = {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          accuracy: pos.coords.accuracy || 10,
+    const onSuccess = (pos) => {
+      const fresh = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      // Exponential smoothing to avoid jitter/flicker
+      if (lastCoordsRef.current) {
+        const prev = lastCoordsRef.current;
+        const smooth = {
+          lat: prev.lat + ALPHA * (fresh.lat - prev.lat),
+          lng: prev.lng + ALPHA * (fresh.lng - prev.lng),
         };
-        const heading =
-          pos.coords.heading !== null && pos.coords.heading !== undefined
-            ? pos.coords.heading
-            : userLocation
-            ? ((Math.atan2(
-                Math.sin(
-                  ((pos.coords.longitude - userLocation.lon) * Math.PI) / 180
-                ) * Math.cos((pos.coords.latitude * Math.PI) / 180),
-                Math.cos((userLocation.lat * Math.PI) / 180) *
-                  Math.sin((pos.coords.latitude * Math.PI) / 180) -
-                  Math.sin((userLocation.lat * Math.PI) / 180) *
-                    Math.cos((pos.coords.latitude * Math.PI) / 180) *
-                    Math.cos(
-                      ((pos.coords.longitude - userLocation.lon) * Math.PI) /
-                        180
-                    )
-              ) *
-                180) /
-                Math.PI +
-                360) %
-              360
-            : null;
-
-        setUserLocation(newLocation);
-        setUserHeading(heading);
-
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo(
-            [newLocation.lat, newLocation.lon],
-            Math.max(mapInstanceRef.current.getZoom(), 17),
-            { duration: 1 }
-          );
-        }
-      },
-      (err) => {
-        console.error("Watch position error", err);
-        // Call the stable stopNavigation function
-        stopNavigation();
-      },
-      options
-    );
-  }, [userLocation, stopNavigation]); // Dependencies are crucial here
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopNavigation();
+        lastCoordsRef.current = smooth;
+        setUserLL(smooth);
+      } else {
+        lastCoordsRef.current = fresh;
+        setUserLL(fresh);
+      }
+      setLoading(false);
     };
-  }, [stopNavigation]);
 
-  // (The rest of the component's JSX remains the same)
-  if (!parkingLot)
-    return (
-      <StatusScreen status="no-lot" onGoBack={() => window.history.back()} />
+    const onError = (err) => {
+      console.error("Geolocation error:", err);
+      setPermissionError(err?.message || "Failed to get location");
+      setLoading(false);
+    };
+
+    const watchId = navigator.geolocation.watchPosition(
+      onSuccess,
+      onError,
+      opts
     );
-  if (isLoadingLocation) return <StatusScreen status="loading-location" />;
-  if (locationError)
-    return (
-      <StatusScreen
-        status="location-error"
-        message={locationError}
-        onRetry={() => window.location.reload()}
-      />
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  // === Vector sources & layers created once ===
+  const routeSourceRef = useRef(new VectorSource());
+  const markerSourceRef = useRef(new VectorSource());
+  const routeLayerRef = useRef(
+    new VectorLayer({
+      source: routeSourceRef.current,
+      style: new Style({
+        stroke: new Stroke({ color: "#2563eb", width: 5 }), // blue path
+      }),
+      zIndex: 5,
+    })
+  );
+  const markerLayerRef = useRef(
+    new VectorLayer({ source: markerSourceRef.current, zIndex: 10 })
+  );
+
+  // === Marker features created once and re-used ===
+  const userFeatureRef = useRef(new Feature());
+  const destFeatureRef = useRef(new Feature());
+
+  // SVG icons (embedded) — blue for user, red for destination
+  const userIcon = useMemo(
+    () =>
+      `data:image/svg+xml;utf8,${encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">\n  <circle cx="14" cy="14" r="10" fill="#3B82F6"/>\n  <circle cx="14" cy="14" r="4" fill="white"/>\n</svg>'
+      )}`,
+    []
+  );
+  const destIcon = useMemo(
+    () =>
+      `data:image/svg+xml;utf8,${encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">\n  <circle cx="14" cy="14" r="10" fill="#EF4444"/>\n  <circle cx="14" cy="14" r="4" fill="white"/>\n</svg>'
+      )}`,
+    []
+  );
+
+  // Apply styles once
+  useEffect(() => {
+    userFeatureRef.current.setStyle(
+      new Style({
+        image: new Icon({ src: userIcon, scale: 1, anchor: [0.5, 0.5] }),
+      })
     );
+    destFeatureRef.current.setStyle(
+      new Style({
+        image: new Icon({ src: destIcon, scale: 1.1, anchor: [0.5, 0.9] }),
+      })
+    );
+  }, [userIcon, destIcon]);
+
+  // === Initialize map once ===
+  useEffect(() => {
+    if (!mapEl.current || mapRef.current) return;
+
+    const map = new Map({
+      target: mapEl.current,
+      layers: [
+        new TileLayer({ source: new OSM() }),
+        routeLayerRef.current,
+        markerLayerRef.current,
+      ],
+      view: new View({ center: fromLonLat([88.3639, 22.5726]), zoom: 14 }), // default to Kolkata-ish until we have coords
+    });
+
+    // Add features to layer source
+    markerSourceRef.current.addFeature(userFeatureRef.current);
+    markerSourceRef.current.addFeature(destFeatureRef.current);
+
+    mapRef.current = map;
+
+    return () => {
+      map.setTarget(undefined);
+      mapRef.current = null;
+    };
+  }, []);
+
+  // === Place destination marker when dest is valid ===
+  useEffect(() => {
+    if (!dest || !mapRef.current) return;
+    const destXY = fromLonLat([dest.lng, dest.lat]);
+    destFeatureRef.current.setGeometry(new Point(destXY));
+
+    // If we don't have user yet, center on destination first
+    if (!userLL) {
+      mapRef.current
+        .getView()
+        .animate({ center: destXY, zoom: 15, duration: 400 });
+    }
+  }, [dest, userLL]);
+
+  // === Update user marker + optionally follow ===
+  useEffect(() => {
+    if (!userLL || !mapRef.current) return;
+    const xy = fromLonLat([userLL.lng, userLL.lat]);
+    userFeatureRef.current.setGeometry(new Point(xy));
+
+    if (isFollowing) {
+      mapRef.current.getView().animate({ center: xy, duration: 250 });
+    }
+  }, [userLL, isFollowing]);
+
+  // === Fetch route from OSRM and render ===
+  const fetchAndDrawRoute = useCallback(async (fromLL, toLL) => {
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${fromLL.lng},${fromLL.lat};${toLL.lng},${toLL.lat}?overview=full&geometries=polyline6`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`OSRM error ${res.status}`);
+      const data = await res.json();
+      const poly = data?.routes?.[0]?.geometry;
+      if (!poly) throw new Error("No route geometry found");
+
+      // Decode polyline6 into a LineString in the map projection
+      const format = new Polyline({ factor: 1e6 });
+      const geom = format.readGeometry(poly, {
+        dataProjection: "EPSG:4326",
+        featureProjection: mapRef.current.getView().getProjection(),
+      });
+
+      // Replace any existing route feature
+      routeSourceRef.current.clear();
+      routeSourceRef.current.addFeature(new Feature({ geometry: geom }));
+
+      // Fit map to route with padding
+      mapRef.current
+        .getView()
+        .fit(geom, { padding: [60, 60, 60, 60], duration: 400, maxZoom: 17 });
+    } catch (e) {
+      console.error(e);
+      // Soft fail, keep markers only
+    }
+  }, []);
+
+  // Draw/refresh route whenever we have both points (user + dest)
+  useEffect(() => {
+    if (userLL && dest) fetchAndDrawRoute(userLL, dest);
+  }, [userLL, dest, fetchAndDrawRoute]);
+
+  // === Actions ===
+  const onStart = () => setIsFollowing(true);
+  const onStop = () => setIsFollowing(false);
+  const onOpenGoogle = () => {
+    if (!dest || !userLL) return;
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${userLL.lat},${userLL.lng}&destination=${dest.lat},${dest.lng}`;
+    window.open(url, "_blank");
+  };
+  const onRecenter = () => {
+    if (!userLL || !mapRef.current) return;
+    mapRef.current.getView().animate({
+      center: fromLonLat([userLL.lng, userLL.lat]),
+      duration: 300,
+      zoom: Math.max(mapRef.current.getView().getZoom() || 16, 16),
+    });
+  };
+
+  // === Guards ===
+  if (!dest) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-3 bg-gray-50 px-4 text-center">
+        <h1 className="text-xl font-semibold text-red-600">
+          Invalid destination coordinates
+        </h1>
+        <p className="text-gray-600">
+          Missing or malformed <code>lat</code>/<code>lng</code> in the URL.
+        </p>
+        <button
+          onClick={() => router.back()}
+          className="mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white shadow hover:bg-blue-700"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  if (permissionError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-3 bg-gray-50 px-4 text-center">
+        <h1 className="text-xl font-semibold text-red-600">
+          Location permission problem
+        </h1>
+        <p className="text-gray-600">{permissionError}</p>
+        <button
+          onClick={() => router.back()}
+          className="mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white shadow hover:bg-blue-700"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  if (loading || !userLL) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <p className="text-gray-700 animate-pulse">
+          Getting your live location…
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full h-[100vh] flex-col flex">
-      <div className="flex-1 relative">
-        <div
-          ref={mapRef}
-          className="w-full h-full"
-          style={{ minHeight: 420 }}
-        />
-        {!isMapLoaded && (
-          <div className="absolute inset-0 bg-white flex items-center justify-center z-[1000]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2" />
-              <p className="text-gray-600 text-sm">Loading map...</p>
-            </div>
-          </div>
+    <div className="relative w-full h-screen">
+      {/* Map container */}
+      <div ref={mapEl} className="w-full h-full" />
+
+      {/* Controls */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-6 flex items-center justify-center gap-3">
+        {!isFollowing ? (
+          <button
+            onClick={onStart}
+            className="pointer-events-auto bg-green-600 text-white font-semibold py-3 px-5 rounded-full shadow-lg hover:bg-green-700"
+          >
+            Start Navigation
+          </button>
+        ) : (
+          <button
+            onClick={onStop}
+            className="pointer-events-auto bg-gray-700 text-white font-semibold py-3 px-5 rounded-full shadow-lg hover:bg-gray-800"
+          >
+            Stop Following
+          </button>
         )}
+        <button
+          onClick={onRecenter}
+          className="pointer-events-auto bg-white text-gray-900 font-semibold py-3 px-5 rounded-full shadow-md hover:bg-gray-100 border"
+        >
+          Recenter
+        </button>
+        <button
+          onClick={onOpenGoogle}
+          className="pointer-events-auto bg-blue-600 text-white font-semibold py-3 px-5 rounded-full shadow-lg hover:bg-blue-700"
+        >
+          Open in Google Maps
+        </button>
       </div>
-      <NavigationPanel
-        parkingLot={parkingLot}
-        userLocation={userLocation}
-        isNavigating={isNavigating}
-        startNavigation={startNavigation}
-        stopNavigation={stopNavigation}
-        routeSummary={routeSummary}
-      />
     </div>
   );
-};
-
-export default DirectionsPage;
+}

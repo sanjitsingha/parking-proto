@@ -23,7 +23,7 @@ const Circle = dynamic(
 
 export default function Page() {
   const [position, setPosition] = useState(null);
-  const targetLocation = { lat: 26.6002, lng: 88.2856 }; // Example target (parking lot)
+  const targetLocation = { lat: 26.582095, lng: 88.268295 }; // Example target (parking lot) 26.582095, 88.268295
 
   useEffect(() => {
     if (!navigator.geolocation) {
