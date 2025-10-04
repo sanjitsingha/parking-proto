@@ -1,0 +1,90 @@
+import {
+  BatteryChargingIcon,
+  Camera,
+  Heart,
+  Map,
+  MapIcon,
+  Zap,
+} from "lucide-react";
+import React, { useState } from "react";
+import Image from "next/image";
+
+import { useRouter } from "next/navigation";
+
+const ParkingSpaceCard = ({ lot }) => {
+  const router = useRouter();
+  const [selectedLot, setselectedLot] = useState(null);
+
+  const handleParkHere = () => {
+    router.push(`/details/${lot.id}`);
+  };
+  return (
+    <>
+      <div className="w-full font-inter  bg-white p-4">
+        <div className="w-full min-h-[300px] border shadow-lg/6 border-gray-100 rounded-xl bg-white ">
+          <div className="w-full relative">
+            {/* image div */}
+            <Image
+              src={lot.images?.[0] || "/no-image.jpg"}
+              alt="image"
+              width={600}
+              height={600}
+            />
+            <div className="absolute px-3 py-1 rounded-full left-2 top-2 bg-yellow-400 text-black">
+              <p className="text-xs">20m Away</p>
+            </div>
+            <button className="bg-gray-200 p-2 rounded-full absolute right-2 top-2">
+              <Heart size={16} />
+            </button>
+          </div>
+          <hr className="border-t border-dotted border-gray-300 my-2" />
+          <div className="w-full p-2 overflow-x-auto">
+            <div className="w-full flex justify-between items-start">
+              <p className="font-semibold">{lot.name || "Unknown"}</p>
+              <p className="font-semibold text-xl text-green-500">
+                {lot.price_per_hour || "00  INR"}/hr
+              </p>
+            </div>
+
+            <span className="w-full flex items-center gap-2">
+              <MapIcon fill="yellow" size={16} />
+              <p className="text-sm text-black/60">
+                {lot.address || "No address available"}
+              </p>
+            </span>
+            <hr className="border-t border-dotted border-gray-300 my-2" />
+
+            <div className="w-full flex items-center justify-evenly ">
+              {/* Facilities Box */}
+
+              <span className="flex gap-1 items-center">
+                <Zap size={16} fill="yellow" />{" "}
+                <p className="text-sm">Instant</p>
+              </span>
+              {lot.cctv ? (
+                <span className="flex gap-1 items-center">
+                  <Camera size={16} fill="yellow" />{" "}
+                  <p className="text-sm">CCTV Available</p>
+                </span>
+              ) : null}
+              {lot.ev_charging ? (
+                <span className="flex gap-1 items-center">
+                  <BatteryChargingIcon size={16} fill="yellow" />
+                  <p className="text-sm">EV Charging Available</p>
+                </span>
+              ) : null}
+            </div>
+            <button
+              onClick={handleParkHere}
+              className="bg-yellow-400 w-full rounded-lg text-black py-3 mt-4 font-semibold"
+            >
+              Park Here!
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default ParkingSpaceCard;

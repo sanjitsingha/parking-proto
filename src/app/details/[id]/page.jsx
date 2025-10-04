@@ -67,7 +67,7 @@ const page = () => {
     <div className="w-full p-2">
       <div className="w-full h-fit py-3 ">
         <p className="font-inter font-semibold text-xl">{details.name}</p>
-        <div className=" mt-2 font-inter flex justify-between items-center ">
+        <div className=" mt-1 font-inter flex justify-between items-center ">
           <p className="text-sm  text-black/60">{details.address}</p>
           <p className="text-sm bg-yellow-100 w-fit px-3 rounded-md border-yellow-200 text-yellow-500">
             {details.status}
@@ -131,13 +131,13 @@ const page = () => {
           {/* Features box */}
           <div className="w-full flex flex-col  gap-3 ">
             <p className="flex items-center gap-2 ">
-              <Camera size={22} fill="yellow" /> CCTV Surveillance
+              <Camera size={22} fill="#FDC700" /> CCTV Surveillance
             </p>
             <p className="flex items-center gap-2">
-              <BatteryCharging size={22} fill="yellow" /> EV Charging
+              <BatteryCharging size={22} fill="#FDC700" /> EV Charging
             </p>
             <p className="flex items-center gap-2">
-              <ZapIcon size={22} fill="yellow" /> Instant
+              <ZapIcon size={22} fill="#FDC700" /> Instant
             </p>
           </div>
         </div>
