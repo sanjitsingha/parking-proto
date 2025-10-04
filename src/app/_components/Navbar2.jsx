@@ -11,9 +11,9 @@ const Navbar2 = () => {
   };
 
   return (
-    <div className="w-full bg-[#18191F]">
-      <nav className="w-full   ">
-        <div className="flex items-center h-[90px] z-50 justify-between px-6  ">
+    <div className="w-full fixed left-0 z-50 top-0 bg-[#18191F]  ">
+      <nav className="w-full relative    ">
+        <div className="flex  items-center h-[90px]  justify-between px-6  ">
           <div>
             <img
               className="z-10"

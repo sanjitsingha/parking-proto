@@ -2,16 +2,31 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import Topbar from "@/app/_components/topbar";
 import Image from "next/image";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Scrollbar, A11y } from "swiper/modules";
+import "swiper/css"; // Core Swiper styles
+import "swiper/css/navigation"; // If using navigation
+import "swiper/css/pagination"; // If using pagination
+
 import {
   ArrowLeft,
+  BatteryCharging,
+  Camera,
   Cctv,
+  CheckCircle2Icon,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
   IndianRupee,
   MapPin,
+  Navigation2Icon,
   Star,
   TruckElectricIcon,
+  Zap,
+  ZapIcon,
 } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 
 const page = () => {
@@ -21,40 +36,6 @@ const page = () => {
 
   const supabase = createClientComponentClient();
   const [details, setDetails] = useState(null);
-  const [activeTab, setactiveTab] = useState("information");
-
-  const reviews = [
-    {
-      id: "1",
-      stars: "2",
-      review: "very good",
-      date: "15/08/2025",
-    },
-    {
-      id: "2",
-      stars: "2",
-      review: "very good",
-      date: "15/08/2025",
-    },
-    {
-      id: "3",
-      stars: "2",
-      review: "poor",
-      date: "15/08/2025",
-    },
-    {
-      id: "4",
-      stars: "4",
-      review: "bad",
-      date: "15/08/2025",
-    },
-    {
-      id: "5",
-      stars: "4",
-      review: "wow",
-      date: "15/08/2025",
-    },
-  ];
 
   const handleGoBack = () => {
     router.back();
@@ -83,124 +64,92 @@ const page = () => {
   if (!details) return <p>Loading...</p>;
 
   return (
-    <div className="w-full font-raleway">
-      <button
-        onClick={handleGoBack}
-        className="bg-white h-12 w-12 rounded-full fixed top-5 left-5 flex items-center justify-center"
+    <div className="w-full p-2">
+      <div className="w-full h-fit py-3 ">
+        <p className="font-inter font-semibold text-xl">{details.name}</p>
+        <div className=" mt-2 font-inter flex justify-between items-center ">
+          <p className="text-sm  text-black/60">{details.address}</p>
+          <p className="text-sm bg-yellow-100 w-fit px-3 rounded-md border-yellow-200 text-yellow-500">
+            {details.status}
+          </p>
+        </div>
+      </div>
+      {/* Custom arrows */}
+
+      <Swiper
+        modules={[Navigation, Pagination, Scrollbar, A11y]}
+        navigation={{
+          nextEl: "#custom-next",
+          prevEl: "#custom-prev",
+        }}
+        spaceBetween={10}
+        slidesPerView={1}
+        loop={true}
       >
-        <ArrowLeft />
-      </button>
-
-      <div className="w-full fixed bottom-0 p-5 h-30 rounded-t-lg">
-        <button className="w-full h-[60px] bg-green-400 flex items-center justify-center rounded-lg">
-          <MapPin size={22} color="white" />{" "}
-          <p className="font-semibold text-white text-xl">Park Here</p>
-        </button>
-      </div>
-      <div className="w-full bg-gray-200 object-cover h-[300px]">
-        <Image
-          width={600}
-          height={600}
-          src={details.images[0]}
-          alt="profile image"
-        />
-      </div>
-      <div className="p-4">
-        <div className=" bg-green-500  w-fit h-fit py-1 px-3 rounded-full ">
-          <p className="text-white text-[8px]">{details.status}</p>
+        <div
+          className="absolute rounded-full p-2 bg-white  top-1/2 left-2 z-10 cursor-pointer"
+          id="custom-prev"
+        >
+          <ChevronLeft />
         </div>
-        <h2 className="font-raleway text-2xl font-semibold">{details.name}</h2>
-        <span className="flex mt-2 text-black/60 items-center gap-1">
-          <IndianRupee color="green" size={16} />{" "}
-          <p className="font-medium ">{details.price_per_hour + " /hr"}</p>
-        </span>
-        <span className="flex mt-2 text-black/60 items-center gap-1">
-          <MapPin color="green" size={16} />{" "}
-          <p className="font-medium ">{details.name}</p>
-        </span>
-        <span className="flex items-center gap-1 mt-2 ">
-          <p>5.3</p>
-          <span className="text-yellow-400 flex items-center">
-            <Star size={14} />
-            <Star size={14} />
-            <Star size={14} />
-            <Star size={14} />
-            <Star size={14} />
-          </span>
-          <p>(100 Reviews)</p>
-        </span>
-        <hr className="my-4 opacity-20" />
-
-        <div className="w-full grid   grid-cols-3">
-          <div className="flex flex-col items-center">
-            <TruckElectricIcon />
-            <p className="text-center text-sm">EV Charging Available</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <Cctv />
-            <p className="text-center text-sm">CCTV Available</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <Cctv />
-            <p className="text-center text-sm">CCTV Available</p>
-          </div>
+        <div
+          className="absolute rounded-full p-2 bg-white top-1/2 right-2 z-10 cursor-pointer"
+          id="custom-next"
+        >
+          <ChevronRight />
         </div>
-        <hr className="my-4 opacity-20" />
-        <div className="w-full flex gap-3">
-          <button
-            onClick={() => setactiveTab("information")}
-            className={`text-lg font-semibold ${
-              activeTab === "information"
-                ? "border-b-2 border-blue-500 text-blue-500 font-semibold"
-                : "text-gray-500"
-            }`}
-          >
-            Information
-          </button>
-          <button
-            onClick={() => setactiveTab("reviews")}
-            className={`text-lg font-semibold ${
-              activeTab === "reviews"
-                ? "border-b-2 border-blue-500 text-blue-500 font-semibold"
-                : "text-gray-500"
-            }`}
-          >
-            Reviews
-          </button>
-        </div>
-        <div>
-          {activeTab === "information" && (
-            <p className="text-sm">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Autem
-              ducimus alias provident qui, adipisci corporis repellat, expedita
-              ab odit eligendi numquam consequatur facilis debitis quaerat
-              laudantium impedit. Eveniet, voluptatibus voluptatum.
-            </p>
-          )}
-        </div>
-        <div className="w-full mt-5">
-          {activeTab === "reviews" && (
-            <div className="w-full mt-2 ">
-              <div className="w-full ">
-                <button className="w-full h-[32px] bg-green-500">
-                  Write a Review
-                </button>
-              </div>
-              {reviews.map((review) => (
-                <div key={review.id}>
-                  <span className="bg-green-500 w-fit py-1 px-2 flex items-center rounded-lg text-white font-semibold">
-                    <Star size={16} />
-                    <p> {review.stars}</p>
-                  </span>
-                  <p>{review.review}</p>
-                  <div className="w-full justify-end flex">
-                    <p>{review.date}</p>
-                  </div>
-                  <hr className="my-2 opacity-15" />
-                </div>
-              ))}
+        {details.images.map((src, index) => (
+          <SwiperSlide key={index}>
+            <div className="w-full   overflow-hidden rounded-2xl h-[200px] relative">
+              <Image
+                src={src}
+                alt={`Slide ${index + 1}`}
+                width={400} // Set appropriate width
+                height={400} // Set appropriate height
+                layout="responsive" // Or other layout options
+                fetchPriority="high"
+                className="object-contain"
+              />
             </div>
-          )}
+          </SwiperSlide>
+        ))}
+      </Swiper>
+
+      <div className="pt-4 font-inter">
+        <div className="w-full border-b flex items-center justify-between border-black/15 pb-2 ">
+          <p className="text-2xl font-bold  text-green-500">
+            <span className="text-black">Price:</span> {details.price_per_hour}{" "}
+            /hr
+          </p>
+          <button className="bg-gray-100 rounded-full  flex  items-center gap-2 p-3">
+            <Heart color="red" size={18} />
+          </button>
+        </div>
+
+        <div className="w-full mt-5">
+          <h3 className=" my-3 font-semibold">Facilities</h3>
+          {/* Features box */}
+          <div className="w-full flex flex-col  gap-3 ">
+            <p className="flex items-center gap-2 ">
+              <Camera size={22} fill="yellow" /> CCTV Surveillance
+            </p>
+            <p className="flex items-center gap-2">
+              <BatteryCharging size={22} fill="yellow" /> EV Charging
+            </p>
+            <p className="flex items-center gap-2">
+              <ZapIcon size={22} fill="yellow" /> Instant
+            </p>
+          </div>
+        </div>
+
+        <div className="w-full mt-4  ">
+          <p className="font-semibold">Descriptions:</p>
+          <p className="text-xs mt-3">{details.description}</p>
+        </div>
+        <div className="w-full fixed bottom-0 bg-white left-0 p-2 ">
+          <button className="w-full rounded-full text-black h-[45px] flex items-center gap-2 justify-center mb-3 bg-yellow-400">
+            <Navigation2Icon size={18} fill="black" /> Start Navigation
+          </button>
         </div>
       </div>
     </div>
