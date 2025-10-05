@@ -1,30 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import Router from "next/router";
-import {
-  BatteryChargingIcon,
-  Bike,
-  BikeIcon,
-  Camera,
-  Car,
-  Cctv,
-  CornerUpRight,
-  CornerUpRightIcon,
-  Heart,
-  Map,
-  MapPin,
-  SmartphoneCharging,
-  Star,
-  View,
-  Zap,
-} from "lucide-react";
 import { getDistanceKm } from "../../utils/distance";
 import { useRouter } from "next/navigation";
 import { useParkingStore } from "../store/useParkingStore";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import Image from "next/image";
 import ParkingSpaceCard from "./ParkingSpaceCard";
+import ExplorePageSkeleton from "./ExplorePageSkeleton";
 
 const CurrentLocationParking = () => {
   const [selectedCoords, setSelectedCoords] = useState(null);
@@ -101,6 +82,8 @@ const CurrentLocationParking = () => {
       alert("Please get your current location first");
     }
   };
+
+  if (!nearbyLots) return <ExplorePageSkeleton />;
 
   return (
     <>

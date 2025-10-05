@@ -3,7 +3,6 @@ import { Navigation, Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CurrentLocationParking from "../_components/CurrentLocationParking";
-import AvailableSpaces from "../_components/AvailableSpaces";
 
 const page = () => {
   const router = useRouter();
