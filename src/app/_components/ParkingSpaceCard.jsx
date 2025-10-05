@@ -22,6 +22,8 @@ const ParkingSpaceCard = ({ lot }) => {
   const handleParkHere = () => {
     router.push(`/details/${lot.id}`);
   };
+
+  console.log(lot.images);
   return (
     <>
       <div className="w-full font-inter  bg-white p-4">
@@ -29,28 +31,31 @@ const ParkingSpaceCard = ({ lot }) => {
           <div className="w-full h-[200px] overflow-hidden relative">
             {/* image div */}
             <Swiper
-              modules={[Navigation, Pagination, Scrollbar, A11y]}
-              navigation
-              spaceBetween={10}
+              modules={[Navigation, Pagination]}
+              pagination
               slidesPerView={1}
               loop={true}
             >
-              {lot.images.map((src, index) => {
+              {lot.images.map((src, index) => (
                 <SwiperSlide key={index}>
-                  <Image
-                    src={src || "/no-image.jpg"}
-                    alt={`Slide ${index + 1}`}
-                    width={600}
-                    height={600}
-                  />
-                </SwiperSlide>;
-              })}
+                  <div className="w-full overflow-hidden">
+                    <Image
+                      src={src || "/no-image.jpg"}
+                      alt={`Slide ${index + 1}`}
+                      width={600}
+                      height={600}
+                      layout="responsive"
+                      fetchPriority="high"
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
             </Swiper>
 
-            <div className="absolute px-3 py-1 rounded-full left-2 top-2 bg-yellow-400 text-black">
+            <div className="absolute z-99 px-3 py-1 rounded-full left-2 top-2 bg-yellow-400 text-black">
               <p className="text-xs">20m Away</p>
             </div>
-            <button className="bg-gray-200 p-2 rounded-full absolute right-2 top-2">
+            <button className="bg-gray-200 z-80 p-2 rounded-full absolute right-2 top-2">
               <Heart size={16} />
             </button>
           </div>
