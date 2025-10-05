@@ -32,7 +32,7 @@ const ParkingSpaceCard = ({ lot }) => {
             {/* image div */}
             <Swiper
               modules={[Navigation, Pagination]}
-              pagination
+              pagination={true}
               slidesPerView={1}
               loop={true}
             >

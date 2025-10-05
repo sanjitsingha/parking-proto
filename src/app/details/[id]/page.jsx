@@ -64,7 +64,7 @@ const page = () => {
   if (!details) return <p>Loading...</p>;
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full p-4">
       <div className="w-full h-fit py-3 ">
         <p className="font-inter font-semibold text-xl">{details.name}</p>
         <div className=" mt-1 font-inter flex justify-between items-center ">

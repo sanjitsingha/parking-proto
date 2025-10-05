@@ -22,7 +22,7 @@ const page = () => {
           </div>
           <div className="w-full flex gap-2 mt-4">
             <input
-              className="bg-white w-[80%] border-yellow-400 border outline-none px-3 h-[46px] rounded-md"
+              className="bg-white flex-1 border-yellow-400 border outline-none px-3 h-[46px] rounded-md"
               type="text"
               placeholder="Search for a Location?"
             />
