@@ -8,8 +8,12 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import Image from "next/image";
-
 import { useRouter } from "next/navigation";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Scrollbar, A11y } from "swiper/modules";
+import "swiper/css"; // Core Swiper styles
+import "swiper/css/navigation"; // If using navigation
+import "swiper/css/pagination"; // If using pagination
 
 const ParkingSpaceCard = ({ lot }) => {
   const router = useRouter();
@@ -21,15 +25,28 @@ const ParkingSpaceCard = ({ lot }) => {
   return (
     <>
       <div className="w-full font-inter  bg-white p-4">
-        <div className="w-full min-h-[300px] border shadow-lg/6 border-gray-100 rounded-xl bg-white ">
-          <div className="w-full relative">
+        <div className="w-full min-h-[300px] overflow-hidden border shadow-lg/6 border-gray-100 rounded-xl bg-white ">
+          <div className="w-full h-[200px] overflow-hidden relative">
             {/* image div */}
-            <Image
-              src={lot.images?.[0] || "/no-image.jpg"}
-              alt="image"
-              width={600}
-              height={600}
-            />
+            <Swiper
+              modules={[Navigation, Pagination, Scrollbar, A11y]}
+              navigation
+              spaceBetween={10}
+              slidesPerView={1}
+              loop={true}
+            >
+              {lot.images.map((src, index) => {
+                <SwiperSlide key={index}>
+                  <Image
+                    src={src || "/no-image.jpg"}
+                    alt={`Slide ${index + 1}`}
+                    width={600}
+                    height={600}
+                  />
+                </SwiperSlide>;
+              })}
+            </Swiper>
+
             <div className="absolute px-3 py-1 rounded-full left-2 top-2 bg-yellow-400 text-black">
               <p className="text-xs">20m Away</p>
             </div>
