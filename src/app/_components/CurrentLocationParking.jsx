@@ -83,7 +83,9 @@ const CurrentLocationParking = () => {
     }
   };
 
-  if (!nearbyLots) return <ExplorePageSkeleton />;
+  if (!nearbyLots || nearbyLots.length === 0) {
+    return <ExplorePageSkeleton />;
+  }
 
   return (
     <>

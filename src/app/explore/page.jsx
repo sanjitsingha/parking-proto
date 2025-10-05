@@ -3,6 +3,7 @@ import { Navigation, Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CurrentLocationParking from "../_components/CurrentLocationParking";
+import ExplorePageSkeleton from "../_components/ExplorePageSkeleton";
 
 const page = () => {
   const router = useRouter();
@@ -11,7 +12,7 @@ const page = () => {
   return (
     <div className="font-inter">
       <div className="w-full h-[calc(100vh-90px)]">
-        <div className="w-full  p-4 bg-[#18191F]  ">
+        <div className="w-full  relative  h-[200px] p-4 bg-[#18191F]  ">
           <div className="w-full">
             <h1 className=" text-3xl font-semibold leading-11 text-white">
               <span className="text-lg text-yellow-400">Where ever you go</span>{" "}
@@ -19,7 +20,7 @@ const page = () => {
               We are available!
             </h1>
           </div>
-          <div className="w-full flex gap-2 mt-4">
+          <div className="w-full h-[50px] sticky top-0 left-0 flex gap-2 mt-4">
             <input
               className="bg-white flex-1 border-yellow-400 border outline-none px-3 h-[46px] rounded-md"
               type="text"
@@ -45,6 +46,7 @@ const page = () => {
           </button>
         </div>
         <CurrentLocationParking />
+        {/* <ExplorePageSkeleton /> */}
       </div>
     </div>
   );
