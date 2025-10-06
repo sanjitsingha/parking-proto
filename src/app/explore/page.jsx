@@ -12,10 +12,12 @@ const page = () => {
   return (
     <div className="font-inter h-[100vh]">
       <div className="w-full h-[calc(100vh-90px)] overflow-y-auto">
-        <div className="w-full h-fit p-4 bg-[#18191F]">
+        <div className="w-full h-fit pt-4 pb-6 px-4 bg-[#18191F]">
           <div className="w-full">
-            <h1 className="text-3xl font-semibold leading-11 text-white">
-              <span className="text-lg text-yellow-400">Where ever you go</span>{" "}
+            <h1 className="text-3xl font-semibold leading-9 text-white">
+              <span className="text-lg font-medium text-yellow-400">
+                Where ever you go
+              </span>{" "}
               <br />
               We are available!
             </h1>

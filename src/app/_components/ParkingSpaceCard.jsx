@@ -26,7 +26,7 @@ const ParkingSpaceCard = ({ lot }) => {
   console.log(lot.images);
   return (
     <>
-      <div className="w-full font-inter  bg-white p-4">
+      <div className="w-full font-inter  bg-white px-4">
         <div className="w-full min-h-[300px] overflow-hidden border shadow-lg/6 border-gray-100 rounded-xl bg-white ">
           <div className="w-full h-[200px] overflow-hidden relative">
             {/* image div */}
