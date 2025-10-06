@@ -90,6 +90,12 @@ const CurrentLocationParking = () => {
   return (
     <>
       <div>
+        <div className="w-full flex items-center relative justify-center pt-3 pb-2 ">
+          <div className="bg-yellow-400 text-black font-inter text-xs rounded-full px-4 py-1">
+            <p>{nearbyLots.length + " Parking Found" || "No Result Found"}</p>
+          </div>
+          <div className="w-full border-b border-black/10 absolute translate-x-1/2 left-0"></div>
+        </div>
         {nearbyLots.length > 0 && (
           <div className="  mb-2 rounded-md">
             {nearbyLots.map((lot) => (
