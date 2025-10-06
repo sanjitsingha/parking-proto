@@ -10,29 +10,34 @@ const page = () => {
   const [locationPermission, setlocationPermission] = useState(null);
 
   return (
-    <div className="font-inter">
-      <div className="w-full h-[calc(100vh-90px)]">
-        <div className="w-full  relative  h-[200px] p-4 bg-[#18191F]  ">
+    <div className="font-inter h-[100vh]">
+      <div className="w-full h-[calc(100vh-90px)] overflow-y-auto">
+        <div className="w-full h-fit p-4 bg-[#18191F]">
           <div className="w-full">
-            <h1 className=" text-3xl font-semibold leading-11 text-white">
+            <h1 className="text-3xl font-semibold leading-11 text-white">
               <span className="text-lg text-yellow-400">Where ever you go</span>{" "}
               <br />
               We are available!
             </h1>
           </div>
-          <div className="w-full h-[50px] sticky top-0 left-0 flex gap-2 mt-4">
+        </div>
+
+        {/* Sticky Search Bar */}
+        <div className="w-full sticky top-0 z-10 bg-[#18191F] p-4 pt-2">
+          <div className="flex gap-2">
             <input
               className="bg-white flex-1 border-yellow-400 border outline-none px-3 h-[46px] rounded-md"
               type="text"
               placeholder="Search for a Location?"
             />
-            <button className="h-[46px] rounded-md px-4  bg-yellow-400">
+            <button className="h-[46px] rounded-md px-4 bg-yellow-400">
               Go
             </button>
           </div>
         </div>
-        {/* Location permision */}
-        <div className="w-full hidden bg-[#24262e] p-4   flex-col items-center h-full text-center gap-6">
+
+        {/* Location permission */}
+        <div className="w-full hidden bg-[#24262e] p-4 flex-col items-center h-full text-center gap-6">
           <p className="font-semibold text-white text-xl">Enable Location</p>
           <div className="bg-[#18191F] p-6 rounded-full">
             <Navigation className="text-white mx-auto" size={60} />
