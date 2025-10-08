@@ -2,8 +2,10 @@
 import { Menu, NonBinary, X } from "lucide-react";
 import React, { useState } from "react";
 import Link from "next/link";
+import { useAuthStore } from "../store/useAuthStore";
 
 const Navbar2 = () => {
+  const { user } = useAuthStore();
   const [navExpanded, setnavExpanded] = useState(false);
 
   const toggleNav = () => {
@@ -47,14 +49,35 @@ const Navbar2 = () => {
             navExpanded
               ? "-translate-y-[0] opacity-100 "
               : "-translate-y-[300px] opacity-0"
-          }  border-t px-6 border-white/10 bg-[#18191f] h-[150px]`}
+          }  border-t px-6 border-white/10 bg-[#18191f]`}
         >
-          <Link
-            className="text-white font-inter  border-b py-2.5 border-white/5 "
-            href={"/"}
-          >
-            My Account
-          </Link>
+          {user ? (
+            <Link
+              className="text-white font-inter  border-b py-2.5 border-white/5 "
+              href={"/account"}
+            >
+              My Account
+            </Link>
+          ) : (
+            <Link
+              className="text-white font-inter  border-b py-2.5 border-white/5 "
+              href={"/login"}
+            >
+              Login
+            </Link>
+          )}
+
+          {user ? (
+            <Link
+              className="text-white font-inter  border-b py-2.5 border-white/5 "
+              href={"/"}
+            >
+              Space Wishlist
+            </Link>
+          ) : (
+            ""
+          )}
+
           <Link
             className="text-white font-inter  border-b py-2.5 border-white/5 "
             href={"/"}
