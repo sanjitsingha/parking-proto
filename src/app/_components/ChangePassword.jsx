@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { usePathname } from "next/navigation";
 import { Eye, EyeClosedIcon, EyeOff, HelpCircle } from "lucide-react";
 
-const LoginUser = () => {
+const ChangePassword = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,16 +46,16 @@ const LoginUser = () => {
       <div className="w-full">
         <form onSubmit={handleLogin}>
           <input
-            placeholder="Phone Number"
+            placeholder="Current Password"
             className="bg-gray-100/20 mt-3 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
-            type="number"
+            type="text"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
           />
           <div className="w-full relative">
             <input
-              placeholder="Password"
+              placeholder="New Password"
               className="bg-gray-100/20 mt-3 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
               type={passwordVisible ? "password" : "text"}
               value={password}
@@ -86,7 +86,7 @@ const LoginUser = () => {
             disabled={loading}
             className="w-full bg-yellow text-black rounded-lg mt-6 px-4 py-3"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Changing..." : "Change Password"}
           </button>
         </form>
       </div>
@@ -94,4 +94,4 @@ const LoginUser = () => {
   );
 };
 
-export default LoginUser;
+export default ChangePassword;

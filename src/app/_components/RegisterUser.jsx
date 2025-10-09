@@ -6,10 +6,10 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useRouter } from "next/navigation";
 
 const RegisterUser = () => {
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [fullname, setFullName] = useState("");
+  const [phone_number, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [vehicleType, setVehicleType] = useState(null);
+  const [vehicle_type, setVehicleType] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const { setUser } = useAuthStore();
@@ -18,11 +18,16 @@ const RegisterUser = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const user = await registerUser(fullName, phone, password, vehicleType);
+      const user = await registerUser(
+        fullname,
+        phone_number,
+        password,
+        vehicle_type
+      );
       setUser({
         id: user.id,
-        phone: user.phone,
-        full_name: user.full_name,
+        phone_number: user.phone_number,
+        fullname: user.fullname,
         vehicle_type: user.vehicle_type,
       });
       router.push("/explore");
@@ -41,7 +46,7 @@ const RegisterUser = () => {
             placeholder="Full Name"
             className="bg-gray-100/20 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
             type="text"
-            value={fullName}
+            value={fullname}
             onChange={(e) => setFullName(e.target.value)}
             required
           />
@@ -49,7 +54,7 @@ const RegisterUser = () => {
             placeholder="Phone Number"
             className="bg-gray-100/20 mt-3 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
             type="number"
-            value={phone}
+            value={phone_number}
             onChange={(e) => setPhone(e.target.value)}
             required
           />
