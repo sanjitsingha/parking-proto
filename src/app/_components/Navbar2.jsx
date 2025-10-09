@@ -1,21 +1,44 @@
 "use client";
-import { Menu, NonBinary, X } from "lucide-react";
-import React, { useState } from "react";
+import { Menu, X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../store/useAuthStore";
 
 const Navbar2 = () => {
   const { user } = useAuthStore();
   const [navExpanded, setnavExpanded] = useState(false);
+  const menuRef = useRef(null);
 
   const toggleNav = () => {
     setnavExpanded(!navExpanded);
   };
 
+  const closeNav = () => {
+    setnavExpanded(false);
+  };
+
+  // 👇 Detect click outside menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        navExpanded
+      ) {
+        setnavExpanded(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [navExpanded]);
+
   return (
-    <div className="w-full fixed left-0 z-50 top-0 bg-[#18191F]  ">
-      <nav className="w-full relative    ">
-        <div className="flex  items-center h-[90px]  justify-between px-6  ">
+    <div className="w-full fixed left-0 z-50 top-0 bg-[#18191F]">
+      <nav className="w-full relative">
+        <div className="flex items-center h-[90px] justify-between px-6">
           <div>
             <img
               className="z-10"
@@ -31,7 +54,7 @@ const Navbar2 = () => {
           >
             {navExpanded ? (
               <X
-                color="white "
+                color="white"
                 className="transition-all duration-150 ease-in-out"
                 size={26}
               />
@@ -44,49 +67,54 @@ const Navbar2 = () => {
             )}
           </button>
         </div>
+
         <div
+          ref={menuRef} // 👈 ref added here
           className={`w-full transition-all duration-400 ease-in-out flex flex-col absolute ${
             navExpanded
-              ? "-translate-y-[0] opacity-100 "
+              ? "-translate-y-[0] opacity-100"
               : "-translate-y-[300px] opacity-0"
-          }  border-t px-6 border-white/10 bg-[#18191f]`}
+          } border-t px-6 border-white/10 bg-[#18191f]`}
         >
           {user ? (
             <Link
-              className="text-white font-inter  border-b py-2.5 border-white/5 "
-              href={"/account"}
+              href="/account"
+              onClick={closeNav}
+              className="text-white font-inter border-b py-2.5 border-white/5"
             >
               My Account
             </Link>
           ) : (
             <Link
-              className="text-white font-inter  border-b py-2.5 border-white/5 "
-              href={"/login"}
+              href="/login"
+              onClick={closeNav}
+              className="text-white font-inter border-b py-2.5 border-white/5"
             >
               Login
             </Link>
           )}
 
-          {user ? (
+          {user && (
             <Link
-              className="text-white font-inter  border-b py-2.5 border-white/5 "
-              href={"/"}
+              href="/"
+              onClick={closeNav}
+              className="text-white font-inter border-b py-2.5 border-white/5"
             >
               Space Wishlist
             </Link>
-          ) : (
-            ""
           )}
 
           <Link
-            className="text-white font-inter  border-b py-2.5 border-white/5 "
-            href={"/"}
+            href="/"
+            onClick={closeNav}
+            className="text-white font-inter border-b py-2.5 border-white/5"
           >
             About
           </Link>
           <Link
-            className="text-white font-inter  border-b py-2.5 border-white/5 "
-            href={"/"}
+            href="/"
+            onClick={closeNav}
+            className="text-white font-inter border-b py-2.5 border-white/5"
           >
             Help
           </Link>
