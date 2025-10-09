@@ -12,7 +12,6 @@ const page = () => {
 
   const { clearUser } = useAuthStore();
   const { user } = useAuthStore();
-  console.log(user);
   return (
     <div className="w-full h-[calc(100vh-90px)] p-4 font-inter bg-blue-light">
       <button onClick={handleLogout}>logout</button>

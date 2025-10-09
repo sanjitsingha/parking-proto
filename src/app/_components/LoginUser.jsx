@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { loginUser } from "@/lib/supabaseAuth";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "../store/useAuthStore";
+import { usePathname } from "next/navigation";
 
 const LoginUser = () => {
   const [phone, setPhone] = useState("");
@@ -11,7 +12,6 @@ const LoginUser = () => {
   const router = useRouter();
   const { setUser } = useAuthStore();
 
-  
   const handleLogin = async (e) => {
     e.preventDefault();
     try {

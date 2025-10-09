@@ -3,6 +3,7 @@ import { Bike, Car } from "lucide-react";
 import React, { useState } from "react";
 import { registerUser } from "@/lib/supabaseAuth";
 import { useAuthStore } from "../store/useAuthStore";
+import { useRouter } from "next/navigation";
 
 const RegisterUser = () => {
   const [fullName, setFullName] = useState("");
@@ -12,19 +13,19 @@ const RegisterUser = () => {
   const [loading, setLoading] = useState(false);
 
   const { setUser } = useAuthStore();
+  const router = useRouter();
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       const user = await registerUser(fullName, phone, password, vehicleType);
       setUser({
-        id: data.id,
-        phone: data.phone,
-        full_name: data.full_name,
-        vehicle_type: data.vehicle_type,
+        id: user.id,
+        phone: user.phone,
+        full_name: user.full_name,
+        vehicle_type: user.vehicle_type,
       });
-      alert(`✅ Welcome ${user.full_name}! Registration successful.`);
-      // redirect if needed
+      router.push("/explore");
     } catch (error) {
       alert(error.message);
     } finally {
@@ -76,9 +77,9 @@ const RegisterUser = () => {
                 />
                 <label
                   htmlFor="bike-option"
-                  className="inline-flex items-center justify-between w-fit p-5 text-gray-500 bg-white border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:bg-gray-50"
+                  className="inline-flex items-center justify-between w-fit p-5 text-black bg-white border-2 border-white rounded-lg cursor-pointer peer-checked:bg-yellow hover:bg-gray-50"
                 >
-                  <Bike />
+                  <Bike size={32} />
                 </label>
               </div>
               <div>
@@ -91,9 +92,9 @@ const RegisterUser = () => {
                 />
                 <label
                   htmlFor="car-option"
-                  className="inline-flex items-center justify-between w-fit p-5 text-gray-500 bg-white border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:bg-gray-50"
+                  className="inline-flex items-center justify-between w-fit p-5 text-black bg-white border-2 border-white rounded-lg cursor-pointer peer-checked:bg-yellow hover:bg-gray-50"
                 >
-                  <Car />
+                  <Car size={32} />
                 </label>
               </div>
             </div>
