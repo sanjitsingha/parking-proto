@@ -10,11 +10,13 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useAuthStore } from "../store/useAuthStore";
 import { toggleFavourite } from "@/lib/updateFavourite";
+import FavouriteLoginPop from "./FavouriteLoginPop";
 
 const ParkingSpaceCard = ({ lot }) => {
   const { user, fetchUserData } = useAuthStore();
   const router = useRouter();
   const [isFav, setIsFav] = useState(false);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   // Check if this space is already favourite
   useEffect(() => {
@@ -29,7 +31,7 @@ const ParkingSpaceCard = ({ lot }) => {
 
   const handleFavouriteClick = async () => {
     if (!user?.id) {
-      alert("Please log in to add favourites");
+      setShowLoginPopup(true);
       return;
     }
 
@@ -83,6 +85,10 @@ const ParkingSpaceCard = ({ lot }) => {
               color={isFav ? "red" : "black"}
             />
           </button>
+          <FavouriteLoginPop
+            show={showLoginPopup}
+            onClose={() => setShowLoginPopup(false)}
+          />
         </div>
 
         <hr className="border-t border-dotted border-gray-300 my-2" />
