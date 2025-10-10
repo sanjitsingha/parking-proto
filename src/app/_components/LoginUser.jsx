@@ -27,7 +27,7 @@ const LoginUser = () => {
       // Set user in Zustand store (persisted in localStorage automatically)
       setUser({
         id: user.id,
-        full_name: user.full_name,
+        fullname: user.fullname,
         phone_number: user.phone_number,
         vehicle_type: user.vehicle_type,
         favourite: user.favourite || [],

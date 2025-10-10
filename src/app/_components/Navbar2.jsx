@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useAuthStore } from "../store/useAuthStore";
 import logowhite from "../../../public/logo/easy-parking-logo-white.svg";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const Navbar2 = () => {
+  const router = useRouter();
   const { user } = useAuthStore();
   const [navExpanded, setnavExpanded] = useState(false);
   const menuRef = useRef(null);
@@ -37,11 +39,15 @@ const Navbar2 = () => {
     };
   }, [navExpanded]);
 
+  const handleNavigate = () => {
+    router.push("/explore");
+  };
+
   return (
     <div className="w-full fixed left-0 z-50 top-0 bg-[#18191F]">
       <nav className="w-full relative">
         <div className="flex items-center h-[90px] justify-between px-6">
-          <div>
+          <div onClick={handleNavigate}>
             <Image
               className="z-10"
               src={logowhite}

@@ -6,8 +6,10 @@ import { useParkingStore } from "../store/useParkingStore";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import ParkingSpaceCard from "./ParkingSpaceCard";
 import ExplorePageSkeleton from "./ExplorePageSkeleton";
+import { useAuthStore } from "../store/useAuthStore";
 
 const CurrentLocationParking = () => {
+  const { user } = useAuthStore();
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [nearbyLots, setNearbyLots] = useState([]);
   const { setSelectedLot } = useParkingStore();
@@ -86,6 +88,8 @@ const CurrentLocationParking = () => {
   if (!nearbyLots || nearbyLots.length === 0) {
     return <ExplorePageSkeleton />;
   }
+
+  
 
   return (
     <>
