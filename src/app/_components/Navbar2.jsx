@@ -3,6 +3,8 @@ import { Menu, X } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../store/useAuthStore";
+import logowhite from "../../../public/logo/easy-parking-logo-white.svg";
+import Image from "next/image";
 
 const Navbar2 = () => {
   const { user } = useAuthStore();
@@ -40,11 +42,11 @@ const Navbar2 = () => {
       <nav className="w-full relative">
         <div className="flex items-center h-[90px] justify-between px-6">
           <div>
-            <img
+            <Image
               className="z-10"
-              src="/yatrisathi.png"
+              src={logowhite}
               alt="logo"
-              width={100}
+              width={120}
               height={80}
             />
           </div>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "../store/useAuthStore";
 import { usePathname } from "next/navigation";
 import { Eye, EyeClosedIcon, EyeOff, HelpCircle } from "lucide-react";
-
+import Link from "next/link";
 const LoginUser = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -80,6 +80,13 @@ const LoginUser = () => {
               <p>{error}</p>
             </div>
           )}
+          <div className="w-full mt-3 flex gap-2 items-center justify-center">
+            <p className="font-inter text-white">New to eassy parking ?</p>
+
+            <Link className="text-yellow" href={"/register"}>
+              Create Account
+            </Link>
+          </div>
 
           <button
             type="submit"

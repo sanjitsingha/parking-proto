@@ -19,10 +19,12 @@ const page = () => {
   console.log(user);
   return (
     <div className="w-full h-[calc(100vh-90px)] relative  font-inter bg-blue-light">
-      <div className="popup bg-blue-dark w-full p-4 absolute rounded-t-3xl h-[300px] bottom-0 left-0">
+      <div className="popup hidden bg-blue-dark w-full p-4 absolute rounded-t-3xl h-[300px] bottom-0 left-0">
         <ChangePassword />
       </div>
-      <div className="w-full p-4">
+      <div className="w-full">
+        <div className="bg-yellow rounded-full h-20 w-20"></div>
+
         <p className=" text-white">Hi, there!</p>
         {/* <p>{user?.fullname}</p> */}
         <div className="w-full">

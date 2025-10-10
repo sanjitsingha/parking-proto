@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { registerUser } from "@/lib/supabaseAuth";
 import { useAuthStore } from "../store/useAuthStore";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const RegisterUser = () => {
   const [fullname, setFullName] = useState("");
@@ -112,6 +113,13 @@ const RegisterUser = () => {
           >
             {loading ? "Registering..." : "Register"}
           </button>
+          <div className="w-full mt-3 flex gap-2 items-center justify-center">
+            <p className="font-inter text-white">Already has account ?</p>
+
+            <Link className="text-yellow" href={"/login"}>
+              Login
+            </Link>
+          </div>
         </form>
       </div>
     </>
