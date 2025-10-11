@@ -8,6 +8,9 @@ import { Navigation, Pagination, Scrollbar, A11y } from "swiper/modules";
 import "swiper/css"; // Core Swiper styles
 import "swiper/css/navigation"; // If using navigation
 import "swiper/css/pagination"; // If using pagination
+import FavouriteLoginPop from "@/app/_components/FavouriteLoginPop";
+import { toggleFavourite } from "@/lib/updateFavourite";
+
 
 import {
   ArrowLeft,
@@ -28,17 +31,41 @@ import {
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/app/store/useAuthStore";
 
 const page = () => {
   const router = useRouter();
   const params = useParams();
   const id = params.id;
-
+  const { user, fetchUserData } = useAuthStore();
   const supabase = createClientComponentClient();
   const [details, setDetails] = useState(null);
+  const [isFav, setIsFav] = useState(false);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
+
 
   const handleGoBack = () => {
     router.back();
+  };
+
+  useEffect(() => {
+    if (user?.favourite?.includes(id)) {
+      setIsFav(true);
+    }
+  }, [user, id]);
+
+  const handleFavouriteClick = async () => {
+    if (!user?.id) {
+      setShowLoginPopup(true);
+      return;
+    }
+    setIsFav(!isFav);
+    const updatedFavs = await toggleFavourite(user.id, id);
+    if (updatedFavs) {
+      await fetchUserData(user.id);
+    } else {
+      setIsFav((prev) => !prev);
+    }
   };
 
   useEffect(() => {
@@ -121,10 +148,15 @@ const page = () => {
             <span className="text-black">Price:</span> {details.price_per_hour}{" "}
             /hr
           </p>
-          <button className="bg-gray-100 rounded-full  flex  items-center gap-2 p-3">
-            <Heart color="red" size={18} />
+          <button onClick={handleFavouriteClick} className="bg-gray-100 rounded-full  flex  items-center gap-2 p-3">
+            <Heart fill={isFav ? "red" : "none"}
+              color={isFav ? "red" : "black"} size={18} />
           </button>
         </div>
+        <FavouriteLoginPop
+          show={showLoginPopup}
+          onClose={() => setShowLoginPopup(false)}
+        />
 
         <div className="w-full mt-5">
           <h3 className=" my-3 font-semibold">Facilities</h3>
