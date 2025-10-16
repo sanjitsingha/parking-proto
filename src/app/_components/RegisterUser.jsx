@@ -1,5 +1,5 @@
 "use client";
-import { Bike, Car } from "lucide-react";
+import { Bike, Car, ChevronLeft } from "lucide-react";
 import React, { useState } from "react";
 import { registerUser } from "@/lib/supabaseAuth";
 import { useAuthStore } from "../store/useAuthStore";
@@ -121,6 +121,16 @@ const RegisterUser = () => {
             </Link>
           </div>
         </form>
+        <div className="w-full flex justify-center py-4 items-center">
+          <button
+            onClick={() => {
+              router.back();
+            }}
+            className="text-yellow flex item-center gap-2"
+          >
+            <ChevronLeft /> <p>Go Back</p>
+          </button>
+        </div>
       </div>
     </>
   );

@@ -4,7 +4,13 @@ import { loginUser } from "@/lib/supabaseAuth";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "../store/useAuthStore";
 import { usePathname } from "next/navigation";
-import { Eye, EyeClosedIcon, EyeOff, HelpCircle } from "lucide-react";
+import {
+  ChevronLeft,
+  Eye,
+  EyeClosedIcon,
+  EyeOff,
+  HelpCircle,
+} from "lucide-react";
 import Link from "next/link";
 const LoginUser = () => {
   const [phone, setPhone] = useState("");
@@ -34,7 +40,7 @@ const LoginUser = () => {
       });
 
       // redirect after login (example)
-      router.push("/explore");
+      router.back();
     } catch (error) {
       setError(error.message);
     } finally {
@@ -47,7 +53,7 @@ const LoginUser = () => {
         <form onSubmit={handleLogin}>
           <input
             placeholder="Phone Number"
-            className="bg-gray-100/20 mt-3 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
+            className="bg-gray-100/20 mt-3 w-full text-white px-4 border outline-none border-yellow rounded-lg py-3"
             type="number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -56,8 +62,8 @@ const LoginUser = () => {
           <div className="w-full relative">
             <input
               placeholder="Password"
-              className="bg-gray-100/20 mt-3 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
-              type={passwordVisible ? "password" : "text"}
+              className="bg-gray-100/20 mt-3 w-full text-white px-4 border outline-none border-yellow rounded-lg py-3"
+              type={passwordVisible ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -96,6 +102,16 @@ const LoginUser = () => {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+        <div className="w-full flex justify-center py-4 items-center">
+          <button
+            onClick={() => {
+              router.back();
+            }}
+            className="text-yellow flex item-center gap-2"
+          >
+            <ChevronLeft /> <p>Go Back</p>
+          </button>
+        </div>
       </div>
     </>
   );
