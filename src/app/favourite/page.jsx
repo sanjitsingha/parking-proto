@@ -59,8 +59,19 @@ const Page = () => {
 
   if (loading) {
     return (
-      <div className="w-full font-inter h-[calc(100vh-90px)] bg-blue-light flex justify-center items-center">
-        <p className="text-white">Loading...</p>
+      <div className="w-full p-4 font-inter h-[calc(100vh-90px)] bg-blue-light ">
+        <div className="w-full animate-pulse  h-[100px] overflow-hidden gap-3 flex items-center bg-blue-dark rounded-lg shadow-lg">
+          <div className="h-full w-[100px] "></div>
+          <div></div>
+        </div>
+        <div className="w-full mt-3 animate-pulse h-[100px] overflow-hidden gap-3 flex items-center bg-blue-dark rounded-lg shadow-lg">
+          <div className="h-full w-[100px] "></div>
+          <div></div>
+        </div>
+        <div className="w-full animate-pulse mt-3 h-[100px] overflow-hidden gap-3 flex items-center bg-blue-dark rounded-lg shadow-lg">
+          <div className="h-full w-[100px] "></div>
+          <div></div>
+        </div>
       </div>
     );
   }
@@ -80,14 +91,12 @@ const Page = () => {
         ) : (
           <div className="flex flex-col gap-3">
             {favourites.map((lot) => (
-              // <ParkingSpaceCard key={lot.id} details={lot} />
-              // <p key={lot.id}>{lot.name}</p>
               <div
                 onClick={handleCardClick}
                 key={lot.id}
                 className="w-full  h-[100px] overflow-hidden gap-3 flex items-center bg-blue-dark rounded-lg shadow-lg"
               >
-                <div className="h-full w-[100px] bg-yellow">
+                <div className="h-full w-[100px] ">
                   <Image
                     className="object-cover h-full"
                     src={lot.images[0]}
