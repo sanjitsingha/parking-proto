@@ -19,7 +19,7 @@ const page = () => {
                 Where ever you go
               </span>{" "}
               <br />
-              We are available!
+              Parking follows!
             </h1>
           </div>
         </div>
