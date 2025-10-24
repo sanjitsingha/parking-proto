@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useRouter } from "next/navigation";
 import AboutSnippet from "../_components/AboutSnippet";
 import Link from "next/link";
-import { HeartPlusIcon, Keyboard, Lock } from "lucide-react";
+import { HeartPlusIcon, Keyboard, LayoutListIcon, Lock } from "lucide-react";
 import ChangePassword from "../_components/ChangePassword";
 
 const page = () => {
@@ -26,14 +26,31 @@ const page = () => {
               {user?.phone_number}
             </p>
           </div>
+          <div className="mr-3">
+            <button
+              onClick={handleLogout}
+              className="flex  rounded-full text-white items-center bg-yellow/30 border border-yellow gap-1 py-2 px-4 "
+            >
+              <Lock size={14} /> <p className="text-xs ">Logout</p>
+            </button>
+          </div>
         </div>
         <hr className="text-white bg-white opacity-10 my-4" />
         <div className="w-full">
           <button
             onClick={() => {
-              router.push("/favourite");
+              router.push("/history");
             }}
             className="flex w-full rounded-full items-center bg-blue-dark gap-3 py-3 px-4 text-white "
+          >
+            <LayoutListIcon size={18} />
+            <p className="text-sm">Parking History</p>
+          </button>
+          <button
+            onClick={() => {
+              router.push("/favourite");
+            }}
+            className="flex w-full mt-3 rounded-full items-center bg-blue-dark gap-3 py-3 px-4 text-white "
           >
             <HeartPlusIcon size={18} />{" "}
             <p className="text-sm">Space Wishlist</p>
@@ -45,12 +62,6 @@ const page = () => {
             className="flex w-full rounded-full mt-3 items-center bg-blue-dark gap-3 py-3 px-4 text-white "
           >
             <Keyboard size={18} /> <p className="text-sm">Change Password</p>
-          </button>
-          <button
-            onClick={handleLogout}
-            className="flex mt-3 w-full rounded-full items-center bg-red-600 gap-3 py-3 px-4 text-white "
-          >
-            <Lock size={18} /> <p className="text-sm">Logout</p>
           </button>
         </div>
       </div>

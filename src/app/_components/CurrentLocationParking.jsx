@@ -59,10 +59,10 @@ const CurrentLocationParking = () => {
       };
       setSelectedCoords(userCoords);
       fetchNearbyLots(userCoords);
-    } else if (!coords && !isGeolocationAvailable && !selectedCoords) {
+    } else if (!isGeolocationAvailable) {
       alert("Your browser does not support Geolocation");
-    } else if (!coords && !isGeolocationEnabled && !selectedCoords) {
-      // Don’t alert automatically; RequestLocationPermission handles this
+    } else if (!isGeolocationEnabled) {
+      alert("Please enable location permissions to find nearby parking");
     }
   }, [coords, isGeolocationAvailable, isGeolocationEnabled]);
 
@@ -109,17 +109,6 @@ const CurrentLocationParking = () => {
       alert("Please get your current location first");
     }
   };
-
-  if (!selectedCoords) {
-    return (
-      <RequestLocationPermission
-        onSuccess={(coords) => {
-          setSelectedCoords(coords);
-          fetchNearbyLots(coords);
-        }}
-      />
-    );
-  }
 
   if (!nearbyLots || nearbyLots.length === 0) {
     return <ExplorePageSkeleton />;
