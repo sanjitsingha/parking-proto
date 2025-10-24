@@ -1,5 +1,5 @@
 "use client";
-import { Bike, Car, ChevronLeft } from "lucide-react";
+import { Bike, Car, ChevronLeft, Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { registerUser } from "@/lib/supabaseAuth";
 import { useAuthStore } from "../store/useAuthStore";
@@ -12,6 +12,11 @@ const RegisterUser = () => {
   const [password, setPassword] = useState("");
   const [vehicle_type, setVehicleType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [passwordVisible, setpasswordVisible] = useState(false);
+
+  const handlePasswordToggle = () => {
+    setpasswordVisible(!passwordVisible);
+  };
 
   const { setUser } = useAuthStore();
   const router = useRouter();
@@ -41,11 +46,11 @@ const RegisterUser = () => {
 
   return (
     <>
-      <div className="w-full">
+      <div className="w-full text-sm">
         <form onSubmit={handleRegister}>
           <input
             placeholder="Full Name"
-            className="bg-gray-100/20 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
+            className="bg-gray-100/20 w-full text-sm text-white px-4 border outline-none border-yellow rounded-lg py-3"
             type="text"
             value={fullname}
             onChange={(e) => setFullName(e.target.value)}
@@ -53,22 +58,34 @@ const RegisterUser = () => {
           />
           <input
             placeholder="Phone Number"
-            className="bg-gray-100/20 mt-3 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
+            className="bg-gray-100/20 mt-3 w-full text-sm text-white px-4 border outline-none border-yellow rounded-lg py-3"
             type="number"
             value={phone_number}
             onChange={(e) => setPhone(e.target.value)}
             required
           />
-          <input
-            placeholder="Password"
-            className="bg-gray-100/20 mt-3 w-full text-lg text-white px-4 border outline-none border-yellow rounded-lg py-3"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="w-full relative">
+            <input
+              placeholder="Password"
+              className="bg-gray-100/20 mt-3 w-full text-sm text-white px-4 border outline-none border-yellow rounded-lg py-3"
+              type={passwordVisible ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span
+              onClick={handlePasswordToggle}
+              className="w-fit h-fit absolute right-3 top-[25px]"
+            >
+              {passwordVisible ? (
+                <EyeOff size={16} color="white" opacity={100} />
+              ) : (
+                <Eye size={16} color="white" opacity={60} />
+              )}
+            </span>
+          </div>
 
-          <div className="w-full mt-3">
+          <div className="w-full mt-5">
             <p className="text-white ">
               Type of Vehicle <span className="opacity-50">(Optional)</span>
             </p>

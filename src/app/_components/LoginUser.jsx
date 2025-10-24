@@ -53,7 +53,7 @@ const LoginUser = () => {
         <form onSubmit={handleLogin}>
           <input
             placeholder="Phone Number"
-            className="bg-gray-100/20 mt-3 w-full text-white px-4 border outline-none border-yellow rounded-lg py-3"
+            className="bg-gray-100/20 mt-3 w-full text-white text-sm px-4 border outline-none border-yellow rounded-lg py-3"
             type="number"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -62,7 +62,7 @@ const LoginUser = () => {
           <div className="w-full relative">
             <input
               placeholder="Password"
-              className="bg-gray-100/20 mt-3 w-full text-white px-4 border outline-none border-yellow rounded-lg py-3"
+              className="bg-gray-100/20 mt-3 w-full text-sm text-white px-4 border outline-none border-yellow rounded-lg py-3"
               type={passwordVisible ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -73,9 +73,9 @@ const LoginUser = () => {
               className="w-fit h-fit absolute right-3 top-[25px]"
             >
               {passwordVisible ? (
-                <EyeOff color="white" opacity={100} />
+                <EyeOff size={16} color="white" opacity={100} />
               ) : (
-                <Eye color="white" opacity={60} />
+                <Eye size={16} color="white" opacity={60} />
               )}
             </span>
           </div>
@@ -87,9 +87,11 @@ const LoginUser = () => {
             </div>
           )}
           <div className="w-full mt-3 flex gap-2 items-center justify-center">
-            <p className="font-inter text-white">New to eassy parking ?</p>
+            <p className="font-inter text-sm text-white">
+              New to eassy parking ?
+            </p>
 
-            <Link className="text-yellow" href={"/register"}>
+            <Link className="text-yellow text-sm" href={"/register"}>
               Create Account
             </Link>
           </div>
@@ -97,7 +99,7 @@ const LoginUser = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-yellow text-black rounded-lg mt-6 px-4 py-3"
+            className="w-full bg-yellow text-black rounded-lg text-sm mt-6 px-4 py-3"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
@@ -109,7 +111,7 @@ const LoginUser = () => {
             }}
             className="text-yellow flex item-center gap-2"
           >
-            <ChevronLeft /> <p>Go Back</p>
+            <ChevronLeft /> <p className="text-sm">Go Back</p>
           </button>
         </div>
       </div>

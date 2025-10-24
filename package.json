@@ -23,6 +23,7 @@
     "rc-slider": "^11.1.8",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-geolocated": "^4.4.0",
     "react-leaflet": "^5.0.0-rc.2",
     "react-map-gl": "^8.0.4",
     "react-toastify": "^11.0.5",
