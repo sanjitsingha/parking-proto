@@ -8,6 +8,7 @@ import ParkingSpaceCard from "./ParkingSpaceCard";
 import ExplorePageSkeleton from "./ExplorePageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { useGeolocated } from "react-geolocated";
+import RequestLocationPermission from "./RequestLocationPermission";
 
 const CurrentLocationParking = () => {
   const { user } = useAuthStore();
@@ -58,10 +59,10 @@ const CurrentLocationParking = () => {
       };
       setSelectedCoords(userCoords);
       fetchNearbyLots(userCoords);
-    } else if (!isGeolocationAvailable) {
+    } else if (!coords && !isGeolocationAvailable && !selectedCoords) {
       alert("Your browser does not support Geolocation");
-    } else if (!isGeolocationEnabled) {
-      alert("Please enable location permissions to find nearby parking");
+    } else if (!coords && !isGeolocationEnabled && !selectedCoords) {
+      // Don’t alert automatically; RequestLocationPermission handles this
     }
   }, [coords, isGeolocationAvailable, isGeolocationEnabled]);
 
@@ -108,6 +109,17 @@ const CurrentLocationParking = () => {
       alert("Please get your current location first");
     }
   };
+
+  if (!selectedCoords) {
+    return (
+      <RequestLocationPermission
+        onSuccess={(coords) => {
+          setSelectedCoords(coords);
+          fetchNearbyLots(coords);
+        }}
+      />
+    );
+  }
 
   if (!nearbyLots || nearbyLots.length === 0) {
     return <ExplorePageSkeleton />;
