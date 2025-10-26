@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { getDistanceKm } from "../../utils/distance";
+import { getDistanceKm, getDistanceMeters } from "../../utils/distance";
 import { useRouter } from "next/navigation";
 import { useParkingStore } from "../store/useParkingStore";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
@@ -25,7 +25,7 @@ const CurrentLocationParking = ({ lat, lon, radius = 1 }) => {
   const router = useRouter();
   const supabase = createClientComponentClient();
 
-  // ✅ Fetch nearby parking lots based on given coordinates
+  // ✅ Fetch nearby parking lots and calculate distances
   const fetchNearbyLots = async (coords, rangeKm) => {
     const { data: lots, error } = await supabase
       .from("parking_lots")
@@ -36,28 +36,40 @@ const CurrentLocationParking = ({ lat, lon, radius = 1 }) => {
       return;
     }
 
-    const nearby = lots.filter((lot) => {
-      const distance = getDistanceKm(coords.lat, coords.lon, lot.lat, lot.lon);
-      return distance <= rangeKm;
-    });
+    // ✅ Filter + Add distance (in meters)
+    const withDistance = lots
+      .map((lot) => {
+        const distance = getDistanceMeters(
+          coords.lat,
+          coords.lon,
+          lot.lat,
+          lot.lon
+        );
+        return { ...lot, distance };
+      })
+      .filter((lot) => lot.distance / 1000 <= rangeKm); // convert to km for filter
 
-    setNearbyLots(nearby);
+    // ✅ Sort by nearest first
+    const sortedLots = withDistance.sort((a, b) => a.distance - b.distance);
 
-    if (nearby.length > 0 && nearby[0].images?.length > 0) {
-      setParkingImg(nearby[0].images[0]);
+    setNearbyLots(sortedLots);
+
+    // Optional — for showing first image somewhere
+    if (sortedLots.length > 0 && sortedLots[0].images?.length > 0) {
+      setParkingImg(sortedLots[0].images[0]);
     }
   };
 
-  // ✅ Detect whether props or current location should be used
+  // ✅ Choose between search coords or current location
   useEffect(() => {
     const init = async () => {
       if (lat && lon) {
-        // Search result coordinates (from ExplorePage)
+        // User searched for a specific place
         const searchCoords = { lat, lon };
         setSelectedCoords(searchCoords);
         await fetchNearbyLots(searchCoords, radius);
       } else if (coords) {
-        // Current location fallback
+        // Default: user's current location
         const current = { lat: coords.latitude, lon: coords.longitude };
         setSelectedCoords(current);
         await fetchNearbyLots(current, 1);

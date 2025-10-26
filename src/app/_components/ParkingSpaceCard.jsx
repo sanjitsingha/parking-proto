@@ -46,7 +46,7 @@ const ParkingSpaceCard = ({ lot }) => {
   };
 
   return (
-    <div className="w-full font-inter bg-white px-4">
+    <div className="w-full font-inter mb-10 bg-white px-4">
       <div className="w-full min-h-[300px] overflow-hidden border shadow-lg/6 border-gray-100 rounded-xl bg-white">
         <div className="w-full h-[200px] overflow-hidden relative">
           <Swiper
@@ -71,13 +71,17 @@ const ParkingSpaceCard = ({ lot }) => {
             ))}
           </Swiper>
 
-          <div className="absolute z-50 px-3 py-1 rounded-full left-2 top-2 bg-yellow-400 text-black">
-            <p className="text-xs">20m Away</p>
+          <div className="absolute z-9 px-3 py-1 rounded-full left-2 top-2 bg-yellow-400 text-black">
+            <p className="text-xs">
+              {lot.distance < 1000
+                ? `${Math.round(lot.distance)} m Away`
+                : `${(lot.distance / 1000).toFixed(2)} km Away`}
+            </p>
           </div>
 
           <button
             onClick={handleFavouriteClick}
-            className="bg-gray-200 z-50 p-2 rounded-full absolute right-2 top-2"
+            className="bg-gray-200 z-9 p-2 rounded-full absolute right-2 top-2"
           >
             <Heart
               size={16}
