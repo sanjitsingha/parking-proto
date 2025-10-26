@@ -121,16 +121,16 @@ const page = () => {
           loop={true}
         >
           <div
-            className="absolute rounded-full p-2 bg-yellow  top-1/2 left-2 z-10 cursor-pointer"
+            className="absolute shadow-xl shadow-blue-dark  rounded-full p-1 bg-yellow/25 border border-yellow  top-1/2 left-2 z-10 cursor-pointer"
             id="custom-prev"
           >
-            <ChevronLeft />
+            <ChevronLeft size={14} />
           </div>
           <div
-            className="absolute rounded-full p-2 bg-yellow top-1/2 right-2 z-10 cursor-pointer"
+            className="absolute  shadow-xl shadow-blue-dark rounded-full p-1 bg-yellow/25 border border-yellow top-1/2 right-2 z-10 cursor-pointer"
             id="custom-next"
           >
-            <ChevronRight />
+            <ChevronRight size={14} />
           </div>
 
           {/* Favourite Button  */}

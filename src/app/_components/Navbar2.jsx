@@ -33,7 +33,7 @@ const Navbar2 = () => {
               onClick={() => {
                 router.push("/account");
               }}
-              className="bg-blue-light p-2 rounded-full"
+              className="bg-blue-light border-white/15  border p-2 rounded-full"
             >
               <User2 color="#FDC700" />
             </div>
@@ -42,7 +42,7 @@ const Navbar2 = () => {
               onClick={() => {
                 router.push("/login");
               }}
-              className="text-white bg-yellow/20 px-3 py-1 rounded-md border border-yellow font-inter font-medium"
+              className="text-white bg-yellow/15 px-3 py-1 rounded-md border border-yellow font-inter text-sm"
             >
               Login
             </button>

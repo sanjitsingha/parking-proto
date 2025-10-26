@@ -27,38 +27,34 @@ const RequestPhoneNumber = () => {
 
   return (
     <div className="w-full">
-      <div className="w-full bg-yellow border-2 border-yellow/20 my-3 flex items-center justify-between rounded-md p-3">
-        <p className="text-sm font-medium text-black/80">
-          Request Phone Number
-        </p>
+      <div className="w-full bg-blue-dark border-2 border-blue-light my-3 flex items-center justify-between rounded-md p-3">
+        <p className="text-sm font-inter text-white">Request Phone Number</p>
 
         {/* Initial Button */}
         {!showPhone && !loading && (
           <button
             onClick={handleViewNumber}
-            className="bg-white hover:bg-yellow-100 transition-all py-2 px-4 gap-2 flex items-center rounded-full shadow-sm"
+            className="bg-blue-light hover:bg-yellow-100 transition-all py-2 px-4 gap-2 flex items-center rounded-full shadow-sm"
           >
-            <PhoneForwarded size={18} />
-            <p className="text-sm font-medium">Phone Number</p>
+            <PhoneForwarded color="white" size={18} />
+            <p className="text-sm text-white font-medium">Phone Number</p>
           </button>
         )}
 
         {/* Loading Dots */}
         {loading && (
           <div className="flex items-center justify-center gap-1 px-4 py-2">
-            <span className="w-2 h-2 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-            <span className="w-2 h-2 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-            <span className="w-2 h-2 bg-black rounded-full animate-bounce"></span>
+            <span className="w-2 h-2 bg-yellow rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+            <span className="w-2 h-2 bg-yellow rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+            <span className="w-2 h-2 bg-yellow rounded-full animate-bounce"></span>
           </div>
         )}
 
         {/* Show Phone */}
         {showPhone && (
-          <div className="flex items-center gap-2">
-            <Lock size={18} className="text-black/70" />
-            <p className="text-lg font-semibold tracking-wide">
-              +91 8116119282
-            </p>
+          <div className="flex bg-blue-light py-2 px-4 rounded-full items-center gap-2">
+            <Lock size={16} className="text-white" />
+            <p className="text-white tracking-wide">+91 8116119282</p>
           </div>
         )}
       </div>
