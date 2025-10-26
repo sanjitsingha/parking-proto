@@ -41,13 +41,6 @@ const AboutSnippet = () => {
         <Link className="text-xs text-yellow" href={"/about/privacy-policy"}>
           Privacy Policy
         </Link>
-
-        <Link
-          className="text-xs text-yellow"
-          href={"/about/terms-and-condition"}
-        >
-          Terms and Conditions
-        </Link>
       </div>
     </div>
   );

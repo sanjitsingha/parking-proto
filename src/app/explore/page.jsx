@@ -62,14 +62,12 @@ const Page = () => {
       <div className="w-full h-[calc(100vh-90px)] overflow-y-auto">
         {/* Header */}
         <div className="w-full h-fit pt-4 pb-6 px-4 bg-[#18191F] transition-all duration-300">
-          <div className="w-full">
-            <h1 className="text-3xl font-semibold leading-9 text-white">
-              <span className="text-lg font-medium text-yellow-400">
-                Wherever you go
-              </span>
-              <br />
+          <div className="w-full text-white font-inter">
+            <p className="text-sm">Wherever you go</p>
+            <p className="text-yellow text-[22px] font-semibold">
+              {" "}
               Parking follows!
-            </h1>
+            </p>
           </div>
 
           {/* Address section - hidden initially */}
@@ -92,7 +90,7 @@ const Page = () => {
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setTimeout(() => setInputFocused(false), 200)}
-                className="bg-white flex-1 border-yellow-400 border outline-none px-3 h-[46px] rounded-md text-sm"
+                className="bg-yellow/10 text-white flex-1 border-yellow-400 border outline-none px-3 h-[46px] rounded-md text-sm"
                 type="text"
                 placeholder="Search for a location..."
               />
