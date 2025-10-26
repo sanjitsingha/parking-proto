@@ -42,7 +42,7 @@ const Navbar2 = () => {
               onClick={() => {
                 router.push("/login");
               }}
-              className="text-yellow font-inter font-medium"
+              className="text-white bg-yellow/20 px-3 py-1 rounded-md border border-yellow font-inter font-medium"
             >
               Login
             </button>
