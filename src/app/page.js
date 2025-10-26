@@ -23,6 +23,7 @@ export default function Home() {
             quickly find and reserve nearby spaces with just one tap.
           </p>
           <button
+            data-umami-event="explore-button-clicked"
             onClick={handlepush}
             className="bg-yellow-400 px-8 py-3  rounded-full font-inter mt-8 text-black font-semibold"
           >
