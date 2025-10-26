@@ -21,6 +21,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          defer
+          src="https://cloud.umami.is/script.js"
+          data-website-id="76318674-9c38-4c3c-9847-5850054358ca"
+        ></script>
+      </head>
       <body className={`${raleway.variable} ${inter.variable}  antialiased`}>
         <Navbar2 />
         <main className="mt-[90px]">{children}</main>
