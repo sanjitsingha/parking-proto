@@ -84,7 +84,7 @@ const Page = () => {
   return (
     <div className="w-full font-inter h-[calc(100vh-90px)] bg-blue-light">
       <div className="w-full h-full p-4">
-        <h1 className="text-xl text-white mb-4">Favourites</h1>
+        <h1 className=" text-white mb-4">Favourites</h1>
 
         {favourites.length === 0 ? (
           <p className="text-white text-sm">No favourites added yet 🚗</p>
@@ -94,7 +94,7 @@ const Page = () => {
               <div
                 onClick={handleCardClick}
                 key={lot.id}
-                className="w-full  h-[100px] overflow-hidden gap-3 flex items-center bg-blue-dark rounded-lg shadow-lg"
+                className="w-full  h-[100px] overflow-hidden gap-3 flex items-center border border-white/15 bg-blue-dark rounded-lg shadow-lg"
               >
                 <div className="h-full w-[100px] ">
                   <Image
@@ -107,8 +107,12 @@ const Page = () => {
                   />
                 </div>
                 <div>
-                  <p className="font-inter text-white">{lot.name}</p>
-                  <p className="text-sm text-white/40 mt-1">{lot.address}</p>
+                  <p className="font-inter text-sm text-white">{lot.name}</p>
+                  <p className="text-xs text-white/40 mt-1">{lot.address}</p>
+                  <p className="text-xs text-white/40 mt-1">
+                    ₹{""}
+                    {lot.price_per_hour}
+                  </p>
                 </div>
               </div>
             ))}

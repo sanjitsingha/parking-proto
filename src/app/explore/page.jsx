@@ -1,16 +1,16 @@
 "use client";
-import { MapPin } from "lucide-react";
+import { MapPin, X } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import CurrentLocationParking from "../_components/CurrentLocationParking";
 
-const page = () => {
+const Page = () => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
 
-  // Fetch location suggestions from Nominatim API
+  // 🔹 Fetch location suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (query.length < 3) {
@@ -38,7 +38,7 @@ const page = () => {
     return () => clearTimeout(timeout);
   }, [query]);
 
-  // Handle selecting a suggestion
+  // 🔹 Handle selecting a suggestion
   const handleSelect = (place) => {
     setQuery(place.display_name);
     setSelectedLocation({
@@ -48,6 +48,13 @@ const page = () => {
     });
     setSuggestions([]);
     setInputFocused(false);
+  };
+
+  // 🔹 Handle clearing search
+  const handleClearSearch = () => {
+    setQuery("");
+    setSelectedLocation(null);
+    setSuggestions([]);
   };
 
   return (
@@ -79,7 +86,7 @@ const page = () => {
         {/* Sticky Search Bar */}
         <div className="w-full sticky top-0 z-10 bg-[#18191F] p-4 pt-2">
           <div className="flex flex-col gap-2 relative">
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -89,12 +96,23 @@ const page = () => {
                 type="text"
                 placeholder="Search for a location..."
               />
-              <button
-                className="h-[46px] rounded-md px-4 bg-yellow-400 font-medium"
-                onClick={() => console.log(selectedLocation)}
-              >
-                Go
-              </button>
+
+              {/* 🔸 Dynamic Button (Go / Clear) */}
+              {selectedLocation ? (
+                <button
+                  onClick={handleClearSearch}
+                  className="h-[46px] w-[46px] flex items-center justify-center rounded-md bg-red-500 hover:bg-red-600 transition-all"
+                >
+                  <X className="text-white" size={20} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => console.log("Searching:", query)}
+                  className="h-[46px] rounded-md px-4 bg-yellow-400 font-medium"
+                >
+                  Go
+                </button>
+              )}
             </div>
 
             {/* Suggestions or shimmer */}
@@ -116,7 +134,7 @@ const page = () => {
                       <li
                         key={i}
                         onClick={() => handleSelect(place)}
-                        className="px-3 py-2 hover:bg-yellow-100 cursor-pointer text-sm text-gray-800"
+                        className="px-3 py-3 hover:bg-yellow-100 border-b border-black/10 cursor-pointer text-sm text-gray-800"
                       >
                         {place.display_name}
                       </li>
@@ -149,4 +167,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
