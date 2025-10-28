@@ -18,6 +18,7 @@
     "lucide-react": "^0.539.0",
     "mapbox-gl": "^3.14.0",
     "mappls-web-maps": "^3.7.1-0",
+    "motion": "^12.23.24",
     "next": "15.4.5",
     "ol": "^10.6.1",
     "rc-slider": "^11.1.8",

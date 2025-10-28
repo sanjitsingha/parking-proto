@@ -1,4 +1,5 @@
 "use client";
+import { motion, AnimatePresence } from "motion/react";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
@@ -38,6 +39,7 @@ import OpeningGoogleMap from "@/app/_components/OpeningGoogleMap";
 import PreReserve from "@/app/_components/PreReserve";
 import { useReserveStore } from "@/app/store/useReserveStore";
 import Link from "next/link";
+import PreReservePopup from "@/app/_components/PreReservePopup";
 
 const page = () => {
   const router = useRouter();
@@ -49,6 +51,7 @@ const page = () => {
   const [isFav, setIsFav] = useState(false);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const { setReserveDetails } = useReserveStore();
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     if (user?.favourite?.includes(id)) {
@@ -228,16 +231,21 @@ const page = () => {
             </div>
           </div>
 
-          <div className="w-full fixed z-30 bottom-0 bg-blue-dark left-0 p-2 pb-10 pt-4 ">
-            <Link
+          <div className="w-full fixed bottom-0 left-0 bg-blue-dark p-2 pb-10 pt-4 z-30">
+            <button
+              onClick={() => setShowPopup(true)}
               className="w-full rounded-full text-black min-h-[45px] flex items-center gap-2 justify-center mb-3 bg-yellow-400"
-              href={{
-                pathname: "/pre-reserve",
-                query: { id: details.id },
-              }}
             >
               <Navigation2Icon size={18} fill="black" /> Start Navigation
-            </Link>
+            </button>
+
+            {showPopup && (
+              <PreReservePopup
+                user={user}
+                details={details}
+                onClose={() => setShowPopup(false)}
+              />
+            )}
           </div>
         </div>
       </div>
