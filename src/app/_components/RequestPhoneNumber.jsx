@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "../store/useAuthStore";
 import { PhoneForwarded, Lock } from "lucide-react";
 
-const RequestPhoneNumber = () => {
+const RequestPhoneNumber = ({ details }) => {
   const [showPhone, setShowPhone] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -54,7 +54,7 @@ const RequestPhoneNumber = () => {
         {showPhone && (
           <div className="flex bg-blue-light py-2 px-4 rounded-full items-center gap-2">
             <Lock size={16} className="text-white" />
-            <p className="text-white tracking-wide">+91 8116119282</p>
+            <p className="text-white tracking-wide">{details.contact_number}</p>
           </div>
         )}
       </div>

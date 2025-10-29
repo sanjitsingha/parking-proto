@@ -203,7 +203,7 @@ const page = () => {
               </p>
             </div>
           </div>
-          <RequestPhoneNumber />
+          <RequestPhoneNumber details={details} />
           <div className="w-full mt-4  ">
             <p className="font-semibold">Descriptions:</p>
             <p className="text-xs mt-3">{details.description}</p>
