@@ -4,7 +4,13 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useRouter } from "next/navigation";
 import AboutSnippet from "../_components/AboutSnippet";
 import Link from "next/link";
-import { HeartPlusIcon, Keyboard, LayoutListIcon, Lock } from "lucide-react";
+import {
+  BellDotIcon,
+  HeartPlusIcon,
+  Keyboard,
+  LayoutListIcon,
+  Lock,
+} from "lucide-react";
 import ChangePassword from "../_components/ChangePassword";
 
 const page = () => {
@@ -42,6 +48,15 @@ const page = () => {
               router.push("/history");
             }}
             className="flex w-full rounded-full items-center bg-blue-dark gap-3 py-3 px-4 text-white "
+          >
+            <BellDotIcon size={18} />
+            <p className="text-sm">Notifications</p>
+          </button>
+          <button
+            onClick={() => {
+              router.push("/history");
+            }}
+            className="flex w-full mt-3 rounded-full items-center bg-blue-dark gap-3 py-3 px-4 text-white "
           >
             <LayoutListIcon size={18} />
             <p className="text-sm">Parking History</p>
