@@ -45,7 +45,7 @@ const page = () => {
         <div className="w-full">
           <button
             onClick={() => {
-              router.push("/history");
+              router.push("/notifications");
             }}
             className="flex w-full rounded-full items-center bg-blue-dark gap-3 py-3 px-4 text-white "
           >
